@@ -1,6 +1,8 @@
 var H2O = 18.010565;
 var N_acetyl = 42.0106;
 
+var modificationPattern = /\[(\+\d+|\-\d+)\]/g;
+
 var aa = {
     'A' : 71.037114,
     'R' : 156.101111,
@@ -28,6 +30,11 @@ var aa = {
 
 function getPeptideMolecularMass(peptideSeq){
     var mass = 0.0000;
+    var modifications = peptideSeq.match(modificationPattern);
+    for(var mod in modifications){
+        mass += new Number(modifications[mod].replace("[","").replace("]",""));
+        peptideSeq = peptideSeq.replace(modifications[mod], "");
+    }
     for(var residue in peptideSeq){
         mass+=aa[peptideSeq[residue].toUpperCase()];
     }
