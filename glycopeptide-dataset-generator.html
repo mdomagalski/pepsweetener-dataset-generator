@@ -6,6 +6,7 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../paper-spinner/paper-spinner.html">
 
 <script src="peptideMassCalculator.js"></script>
 <script src="glycanMassCalculator.js"></script>
@@ -109,12 +110,15 @@
                 <form is="iron-form" id="newDatasetForm">
                     <paper-textarea name="peptideList" label="List of peptides" value="{{peptides}}"></paper-textarea>
                     <paper-textarea name="glycanList" label="List of glycan compositions" value="{{glycans}}"></paper-textarea>
-                    <!--<paper-input name="datasetID" label="Dataset name" value="{{datasetId}}"></paper-input>-->
                     <paper-button raised class="indigo" on-click="generate">generate</paper-button>
                 </form>
             </div>
         </paper-header-panel>
-        <paper-dialog id="dialog"><h2>New dataset was successfully created</h2></paper-dialog>
+        <paper-spinner alt="Generating dataset"></paper-spinner>
+        <paper-dialog id="workingDialog">
+            <paper-spinner alt="Generating dataset" active>Generating theoretical glycopeptide dataset</paper-spinner>
+        </paper-dialog>
+        <paper-dialog id="finishedDialog"></paper-dialog>
     </template>
 
     <!-- Registers custom element -->
@@ -165,6 +169,7 @@
             this.combineGlycansAndPeptides();
         },
         combineGlycansAndPeptides: function() {
+            this.$.workingDialog.open();
             for(peptide of this.peptides){
                 peptideMass = getPeptideMolecularMass(peptide);
                 for (glycan of this.glycans){
@@ -177,8 +182,10 @@
                     this.glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
                 }
             }
-            var dialog = document.getElementById("dialog");
-            dialog.open();
+            this.$.workingDialog.close();
+            this.$.finishedDialog.innerHTML =
+                "<h2>You have generated a dataset containing "+Object.keys(this.glycopeptides).length+" theoretical glycopeptides</h2>";
+            this.$.finishedDialog.open();
         }
     });
     </script>
