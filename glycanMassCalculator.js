@@ -1,4 +1,4 @@
-var reducingEnd = 18.0105647;
+var H2O = 18.0105647;
 
 var glycanMonomers = {
     'Pen':  132.0422587,
@@ -15,10 +15,14 @@ var glycanMonomers = {
 
 function getGlycanMolecularMass(glycanComp){
     var mass = 0.000000;
+    if(!isNaN(parseFloat(glycanComp)) && isFinite(glycanComp)){
+        console.log(glycanComp);
+        return parseFloat(glycanComp)
+    }
     monomers = glycanComp.split('|');
     for(var monomer in monomers){
         monomer = monomers[monomer].split(':');
         mass+=glycanMonomers[monomer[0]]*monomer[1];
     }
-    return mass+reducingEnd;
+    return mass+H2O;
 }

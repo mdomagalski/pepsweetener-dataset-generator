@@ -141,11 +141,9 @@
             }
         },
         generate: function() {
-            if(typeof this.peptides !== 'string'){
-                this.glycopeptides = {};
-            }
+            this.glycopeptides = {};
             if(typeof this.peptides === 'string'){
-                var peptideList = this.peptides.split(",").filter(String);
+                var peptideList = this.peptides.split(",");
                 for(var i=0; i<peptideList.length; i++){peptideList[i] = peptideList[i].trim()};
 
                 var nonRedundantPeptideList = peptideList.filter(function(item, pos) {
