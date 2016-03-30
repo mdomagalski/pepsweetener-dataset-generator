@@ -169,15 +169,17 @@
         combineGlycansAndPeptides: function() {
             this.$.workingDialog.open();
             for(peptide of this.peptides){
-                peptideMass = getPeptideMolecularMass(peptide);
-                for (glycan of this.glycans){
-                    glycanMass = getGlycanMolecularMass(glycan);
-                    glycopeptideMass = peptideMass+glycanMass;
-                    bucket = Math.round(glycopeptideMass*10);
-                    if(!this.glycopeptides[bucket]){
-                        this.glycopeptides[bucket] = [];
+                if(peptide.toUpperCase().match(/N[^P][ST]/) || parseFloat(peptide)) {
+                    peptideMass = getPeptideMolecularMass(peptide);
+                    for (glycan of this.glycans){
+                        glycanMass = getGlycanMolecularMass(glycan);
+                        glycopeptideMass = peptideMass+glycanMass;
+                        bucket = Math.round(glycopeptideMass*10);
+                        if(!this.glycopeptides[bucket]){
+                            this.glycopeptides[bucket] = [];
+                        }
+                        this.glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
                     }
-                    this.glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
                 }
             }
             this.$.workingDialog.close();
