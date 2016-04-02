@@ -16,7 +16,6 @@ var glycanMonomers = {
 function getGlycanMolecularMass(glycanComp){
     var mass = 0.000000;
     if(!isNaN(parseFloat(glycanComp)) && isFinite(glycanComp)){
-        console.log(glycanComp);
         return parseFloat(glycanComp)
     }
     monomers = glycanComp.split('|');

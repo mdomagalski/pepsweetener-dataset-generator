@@ -85,7 +85,6 @@
                 <paper-button raised class="indigo" on-click="generate">generate</paper-button>
             </form>
         </div>
-        <paper-spinner alt="Generating dataset"></paper-spinner>
         <paper-dialog id="workingDialog">
             <paper-spinner alt="Generating dataset" active>Generating theoretical glycopeptide dataset</paper-spinner>
         </paper-dialog>
@@ -97,7 +96,6 @@
     Polymer({
         is: 'glycopeptide-dataset-generator',
         properties: {
-            datasetId: String,
             peptides: {
                 type: Array,
                 value: []
@@ -108,11 +106,12 @@
             },
             glycopeptides: {
                 type: Array,
-                value: {}
+                value: {},
+                notify: true,
+                readOnly: false
             }
         },
         generate: function() {
-            this.glycopeptides = {};
             if(typeof this.peptides === 'string'){
                 var peptideList = this.peptides.split(",");
                 for(var i=0; i<peptideList.length; i++){peptideList[i] = peptideList[i].trim()};
@@ -139,6 +138,7 @@
         },
         combineGlycansAndPeptides: function() {
             this.$.workingDialog.open();
+            glycopeptides = {};
             for(peptide of this.peptides){
                 if(peptide.toUpperCase().match(/N[^P][ST]/) || parseFloat(peptide)) {
                     peptideMass = getPeptideMolecularMass(peptide);
@@ -146,13 +146,14 @@
                         glycanMass = getGlycanMolecularMass(glycan);
                         glycopeptideMass = peptideMass+glycanMass;
                         bucket = Math.round(glycopeptideMass*10);
-                        if(!this.glycopeptides[bucket]){
-                            this.glycopeptides[bucket] = [];
+                        if(!glycopeptides[bucket]){
+                            glycopeptides[bucket] = [];
                         }
-                        this.glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
+                        glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
                     }
                 }
             }
+            this.glycopeptides = glycopeptides;
             this.$.workingDialog.close();
             this.$.finishedDialog.innerHTML =
                 "<h2>You have generated a dataset containing "+Object.keys(this.glycopeptides).length+" theoretical glycopeptides</h2>";
