@@ -1,6 +1,5 @@
 <!-- Imports polymer -->
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-input/paper-textarea.html">
 <link rel="import" href="../paper-button/paper-button.html">
@@ -34,16 +33,30 @@
 
             /* Input foreground color */
             --paper-input-container-input-color: black;
+
+            --paper-spinner-stroke-width: 4px;
         }
+
+        paper-spinner {
+            top: 70px;
+            left: 43.5%;
+            height: 80px;
+            width: 80px;
+            position: absolute;
+            z-index: 10;
+        }
+
         paper-textarea {
             min-width: 300px;
             width: 42%;
             display: inline-block;
             margin: 30px 0px 0px 40px;
         }
+
         .paper-textarea input {
             height: 5em;
         }
+
         paper-button.indigo {
             font-family: "Roboto";
             background-color: var(--paper-indigo-500);
@@ -55,18 +68,7 @@
                 color: white !important;
             };
         }
-        .paper-header {
-            font-family: "Roboto";
-            height: 60px;
-            font-size: 20px;
-            line-height: 60px;
-            padding: 0 10px;
-            color: white;
-            transition: height 0.2s;
-        }
-        .blue .paper-header {
-            background-color: var(--paper-indigo-500);
-        }
+
         paper-dialog {
             position: fixed;
             text-align: center;
@@ -85,9 +87,7 @@
                 <paper-button raised class="indigo" on-click="generate">generate</paper-button>
             </form>
         </div>
-        <paper-dialog id="workingDialog">
-            <paper-spinner alt="Generating dataset" active>Generating theoretical glycopeptide dataset</paper-spinner>
-        </paper-dialog>
+        <paper-spinner id="spinner" alt="Generating dataset" disabled></paper-spinner>
         <paper-dialog id="finishedDialog"></paper-dialog>
     </template>
 
@@ -105,13 +105,14 @@
                 value: []
             },
             glycopeptides: {
-                type: Array,
-                value: {},
+                type: Object,
                 notify: true,
                 readOnly: false
-            }
+            },
+            datasetLength: Number
         },
         generate: function() {
+            this.$.spinner.active = true;
             if(typeof this.peptides === 'string'){
                 var peptideList = this.peptides.split(",");
                 for(var i=0; i<peptideList.length; i++){peptideList[i] = peptideList[i].trim()};
@@ -137,26 +138,31 @@
             this.combineGlycansAndPeptides();
         },
         combineGlycansAndPeptides: function() {
-            this.$.workingDialog.open();
             glycopeptides = {};
+            glycanMasses = {};
+            for (glycan of this.glycans){
+                glycanMasses[glycan] = getGlycanMolecularMass(glycan);
+            }
+            this.datasetLength =0;
             for(peptide of this.peptides){
                 if(peptide.toUpperCase().match(/N[^P][ST]/) || parseFloat(peptide)) {
                     peptideMass = getPeptideMolecularMass(peptide);
                     for (glycan of this.glycans){
-                        glycanMass = getGlycanMolecularMass(glycan);
+                        glycanMass = glycanMasses[glycan];
                         glycopeptideMass = peptideMass+glycanMass;
                         bucket = Math.round(glycopeptideMass*10);
                         if(!glycopeptides[bucket]){
                             glycopeptides[bucket] = [];
                         }
                         glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
+                        this.datasetLength+=1;
                     }
                 }
             }
             this.glycopeptides = glycopeptides;
-            this.$.workingDialog.close();
+            this.$.spinner.active = false;
             this.$.finishedDialog.innerHTML =
-                "<h2>You have generated a dataset containing "+Object.keys(this.glycopeptides).length+" theoretical glycopeptides</h2>";
+                "<h2>You have generated a dataset containing "+this.datasetLength+" theoretical glycopeptides</h2>";
             this.$.finishedDialog.open();
         }
     });
