@@ -88,7 +88,6 @@
             </form>
         </div>
         <paper-spinner id="spinner" alt="Generating dataset" disabled></paper-spinner>
-        <paper-dialog id="finishedDialog"></paper-dialog>
     </template>
 
     <!-- Registers custom element -->
@@ -161,9 +160,6 @@
             }
             this.glycopeptides = glycopeptides;
             this.$.spinner.active = false;
-            this.$.finishedDialog.innerHTML =
-                "<h2>You have generated a dataset containing "+this.datasetLength+" theoretical glycopeptides</h2>";
-            this.$.finishedDialog.open();
         }
     });
     </script>
