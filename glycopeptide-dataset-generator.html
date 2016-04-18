@@ -5,6 +5,7 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-spinner/paper-spinner.html">
+<link rel="import" href="../gundb-embedded-peer/gundb-embedded-peer.html">
 
 <script src="peptideMassCalculator.js"></script>
 <script src="glycanMassCalculator.js"></script>
@@ -80,6 +81,7 @@
         }
     </style>
     <template>
+        <gundb-embedded-peer id="gundb"></gundb-embedded-peer>
         <div class="fit">
             <form is="iron-form" id="newDatasetForm">
                 <paper-textarea name="peptideList" label="List of peptides" value="{{peptides}}"></paper-textarea>
@@ -150,15 +152,18 @@
                         glycanMass = glycanMasses[glycan];
                         glycopeptideMass = peptideMass+glycanMass;
                         bucket = Math.round(glycopeptideMass*10);
-                        if(!glycopeptides[bucket]){
-                            glycopeptides[bucket] = [];
+                        //if(!glycopeptides[bucket]){
+                        if(!this.$.gundb[bucket]){
+                            this.$.gundb[bucket] = [];
+                            //glycopeptides[bucket] = [];
                         }
-                        glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
+                        this.$.gundb.add(bucket, new Array(peptide, glycan, glycopeptideMass));
+                        //glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
                         this.datasetLength+=1;
                     }
                 }
             }
-            this.glycopeptides = glycopeptides;
+            //this.glycopeptides = glycopeptides;
             this.$.spinner.active = false;
         }
     });

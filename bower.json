@@ -16,7 +16,8 @@
     "polymer": "Polymer#^1.3.1",
     "paper-input": "PolymerElements/paper-input#^1.1.10",
     "paper-button": "PolymerElements/paper-button#^1.0.11",
-      "paper-spinner": "PolymerElements/paper-spinner#^1.1.1",
-    "paper-dialog": "PolymerElements/paper-dialog#^1.0.4"
+    "paper-spinner": "PolymerElements/paper-spinner#^1.1.1",
+    "paper-dialog": "PolymerElements/paper-dialog#^1.0.4",
+    "gundb-embedded-peer": "https://mdomagalski@bitbucket.org/sib-pig/gundb-embedded-peer.git"
   }
 }
