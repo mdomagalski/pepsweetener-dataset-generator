@@ -5,7 +5,6 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-spinner/paper-spinner.html">
-<link rel="import" href="../gundb-embedded-peer/gundb-embedded-peer.html">
 
 <script src="peptideMassCalculator.js"></script>
 <script src="glycanMassCalculator.js"></script>
@@ -73,7 +72,6 @@
         paper-dialog {
             position: fixed;
             text-align: center;
-            top: 16px;
             margin: 30px;
             width: auto;
             height: auto;
@@ -81,12 +79,12 @@
         }
     </style>
     <template>
-        <gundb-embedded-peer id="gundb"></gundb-embedded-peer>
         <div class="fit">
             <form is="iron-form" id="newDatasetForm">
                 <paper-textarea name="peptideList" label="List of peptides" value="{{peptides}}"></paper-textarea>
                 <paper-textarea name="glycanList" label="List of glycan compositions" value="{{glycans}}"></paper-textarea>
                 <paper-button raised class="indigo" on-click="generate">generate</paper-button>
+                <paper-dialog id="dialog"></paper-dialog>
             </form>
         </div>
         <paper-spinner id="spinner" alt="Generating dataset" disabled></paper-spinner>
@@ -94,78 +92,83 @@
 
     <!-- Registers custom element -->
     <script>
-    Polymer({
-        is: 'glycopeptide-dataset-generator',
-        properties: {
-            peptides: {
-                type: Array,
-                value: []
+        Polymer({
+            is: 'glycopeptide-dataset-generator',
+            properties: {
+                peptides: {
+                    type: Array,
+                    value: []
+                },
+                glycans: {
+                    type: Array,
+                    value: []
+                },
+                glycopeptides: {
+                    type: Object,
+                    notify: true,
+                    readOnly: false
+                },
+                datasetLength: Number
             },
-            glycans: {
-                type: Array,
-                value: []
+            generate: function() {
+                this.$.spinner.active = true;
+                if(typeof this.peptides === 'string'){
+                    var peptideList = this.peptides.split(",");
+                    for(var i=0; i<peptideList.length; i++){peptideList[i] = peptideList[i].trim()};
+
+                    var nonRedundantPeptideList = peptideList.filter(function(item, pos) {
+                        return peptideList.indexOf(item) == pos;
+                    });
+
+                    this.peptides = nonRedundantPeptideList;
+                }
+
+                if(typeof this.glycans === 'string'){
+                    var glycanList = this.glycans.split(",").filter(String);
+                    for(var i=0; i<glycanList.length; i++){glycanList[i] = glycanList[i].trim()};
+
+                    var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
+                        return glycanList.indexOf(item) == pos;
+                    });
+
+                    this.glycans = nonRedundantGlycanList;
+                }
+
+                if(this.glycans.length*this.peptides.length>10000000){
+                    this.$.dialog.innerHTML =
+                        "<h2>The dataset generator has a limit of 10 000 000 combinations."
+                        +" Please reduce list of peptides and/or glycans.</h2>";
+                    this.$.dialog.open();
+                    this.$.spinner.active = false;
+                }else{
+                    this.combineGlycansAndPeptides();
+                }
             },
-            glycopeptides: {
-                type: Object,
-                notify: true,
-                readOnly: false
-            },
-            datasetLength: Number
-        },
-        generate: function() {
-            this.$.spinner.active = true;
-            if(typeof this.peptides === 'string'){
-                var peptideList = this.peptides.split(",");
-                for(var i=0; i<peptideList.length; i++){peptideList[i] = peptideList[i].trim()};
-
-                var nonRedundantPeptideList = peptideList.filter(function(item, pos) {
-                    return peptideList.indexOf(item) == pos;
-                });
-
-                this.peptides = nonRedundantPeptideList;
-            }
-
-            if(typeof this.glycans === 'string'){
-                var glycanList = this.glycans.split(",").filter(String);
-                for(var i=0; i<glycanList.length; i++){glycanList[i] = glycanList[i].trim()};
-
-                var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
-                    return glycanList.indexOf(item) == pos;
-                });
-
-                this.glycans = nonRedundantGlycanList;
-            }
-
-            this.combineGlycansAndPeptides();
-        },
-        combineGlycansAndPeptides: function() {
-            glycopeptides = {};
-            glycanMasses = {};
-            for (glycan of this.glycans){
-                glycanMasses[glycan] = getGlycanMolecularMass(glycan);
-            }
-            this.datasetLength =0;
-            for(peptide of this.peptides){
-                if(peptide.toUpperCase().match(/N[^P][ST]/) || parseFloat(peptide)) {
-                    peptideMass = getPeptideMolecularMass(peptide);
-                    for (glycan of this.glycans){
-                        glycanMass = glycanMasses[glycan];
-                        glycopeptideMass = peptideMass+glycanMass;
-                        bucket = Math.round(glycopeptideMass*10);
-                        //if(!glycopeptides[bucket]){
-                        if(!this.$.gundb[bucket]){
-                            this.$.gundb[bucket] = [];
-                            //glycopeptides[bucket] = [];
+            combineGlycansAndPeptides: function() {
+                glycopeptides = {};
+                glycanMasses = {};
+                for (glycan of this.glycans){
+                    glycanMasses[glycan] = getGlycanMolecularMass(glycan);
+                }
+                this.datasetLength =0;
+                for(peptide of this.peptides){
+                    if(peptide.toUpperCase().match(/N[^P][ST]/) || parseFloat(peptide)) {
+                        peptideMass = getPeptideMolecularMass(peptide);
+                        for (glycan of this.glycans){
+                            glycanMass = glycanMasses[glycan];
+                            glycopeptideMass = peptideMass+glycanMass;
+                            bucket = Math.round(glycopeptideMass*10);
+                            if(!glycopeptides[bucket]){
+                                glycopeptides[bucket] = [];
+                            }
+                            glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
+                            this.datasetLength+=1;
                         }
-                        this.$.gundb.add(bucket, new Array(peptide, glycan, glycopeptideMass));
-                        //glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
-                        this.datasetLength+=1;
                     }
                 }
+                this.glycopeptides = glycopeptides;
+                this.$.spinner.active = false;
             }
-            //this.glycopeptides = glycopeptides;
-            this.$.spinner.active = false;
-        }
-    });
+        });
     </script>
 </dom-module>
