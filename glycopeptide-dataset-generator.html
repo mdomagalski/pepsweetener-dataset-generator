@@ -5,6 +5,7 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-spinner/paper-spinner.html">
+<link rel="import" href="../file-input/file-input.html">
 
 <script src="peptideMassCalculator.js"></script>
 <script src="glycanMassCalculator.js"></script>
@@ -15,8 +16,7 @@
         :root {
             --paper-input-container-input: {
                 border: solid #f7f7f9 .1rem;
-                height: 5em;
-
+                display: inline-block;
             };
 
             --paper-input-container-label:{
@@ -46,17 +46,6 @@
             z-index: 10;
         }
 
-        paper-textarea {
-            min-width: 300px;
-            width: 42%;
-            display: inline-block;
-            margin: 30px 0px 0px 40px;
-        }
-
-        .paper-textarea input {
-            height: 5em;
-        }
-
         paper-button.indigo {
             font-family: "Roboto";
             background-color: var(--paper-indigo-500);
@@ -77,12 +66,17 @@
             height: auto;
             overflow: auto;
         }
+
+        paper-input{
+            width: 35%;
+            display: inline-flex;
+        }
     </style>
     <template>
         <div class="fit">
             <form is="iron-form" id="newDatasetForm">
-                <paper-textarea name="peptideList" label="List of peptides" value="{{peptides}}"></paper-textarea>
-                <paper-textarea name="glycanList" label="List of glycan compositions" value="{{glycans}}"></paper-textarea>
+                <paper-input type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
+                <paper-input type="file" label="List of glycans" on-change="loadGlycanFile"></paper-input>
                 <paper-button raised class="indigo" on-click="generate">generate</paper-button>
                 <paper-dialog id="dialog"></paper-dialog>
             </form>
@@ -110,29 +104,62 @@
                 },
                 datasetLength: Number
             },
+            attached: function(){
+                if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
+                    alert('The File APIs are not fully supported in this browser.');
+                }
+            },
+            loadGlycanFile: function(evt){
+                var file = evt.target.files[0];
+                var reader = new FileReader();
+                var data=this;
+                reader.onload = (function(theFile) {
+                    return function(e) {
+
+                        var glycanList = e.target.result.split(",").filter(String);
+                        for(var i=0; i<glycanList.length; i++){glycanList[i] = glycanList[i].trim()};
+
+                        var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
+                            return glycanList.indexOf(item) == pos;
+                        });
+
+                        data.glycans =nonRedundantGlycanList;
+                    };
+                })(file);
+                reader.readAsText(file);
+            },
+            loadPeptideFile: function(evt){
+                var file = evt.target.files[0];
+                var reader = new FileReader();
+                var data=this;
+                reader.onload = (function(theFile) {
+                    return function(e) {
+
+                        var peptideList = e.target.result.split(",");
+                        for(var i=0; i<peptideList.length; i++){peptideList[i] = peptideList[i].trim()};
+
+                        var nonRedundantPeptideList = peptideList.filter(function(item, pos) {
+                            return peptideList.indexOf(item) == pos;
+                        });
+
+                        data.peptides = nonRedundantPeptideList;
+                    };
+                })(file);
+                reader.readAsText(file);
+            },
+            loadDatasetFile: function(evt){
+                var file = evt.target.files[0];
+                var reader = new FileReader();
+                var data = this;
+                reader.onload = (function(theFile) {
+                    return function(e) {
+                        data.glycopeptides = e.target.result;
+                    };
+                })(file);
+                reader.readAsText(file);
+            },
             generate: function() {
                 this.$.spinner.active = true;
-                if(typeof this.peptides === 'string'){
-                    var peptideList = this.peptides.split(",");
-                    for(var i=0; i<peptideList.length; i++){peptideList[i] = peptideList[i].trim()};
-
-                    var nonRedundantPeptideList = peptideList.filter(function(item, pos) {
-                        return peptideList.indexOf(item) == pos;
-                    });
-
-                    this.peptides = nonRedundantPeptideList;
-                }
-
-                if(typeof this.glycans === 'string'){
-                    var glycanList = this.glycans.split(",").filter(String);
-                    for(var i=0; i<glycanList.length; i++){glycanList[i] = glycanList[i].trim()};
-
-                    var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
-                        return glycanList.indexOf(item) == pos;
-                    });
-
-                    this.glycans = nonRedundantGlycanList;
-                }
 
                 if(this.glycans.length*this.peptides.length>10000000){
                     this.$.dialog.innerHTML =
