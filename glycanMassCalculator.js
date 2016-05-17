@@ -1,4 +1,4 @@
-var H2O = 18.0105647;
+var reducingEnd = 18.0105647;
 
 var glycanMonomers = {
     'Pen':  132.0422587,
@@ -23,5 +23,5 @@ function getGlycanMolecularMass(glycanComp){
         monomer = monomers[monomer].split(':');
         mass+=glycanMonomers[monomer[0]]*monomer[1];
     }
-    return mass+H2O;
+    return mass;
 }
