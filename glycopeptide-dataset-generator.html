@@ -5,17 +5,20 @@
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-dialog/paper-dialog.html">
 <link rel="import" href="../paper-spinner/paper-spinner.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 
 <script src="peptideMassCalculator.js"></script>
 <script src="glycanMassCalculator.js"></script>
 
 <!-- Defines element markup -->
 <dom-module id="glycopeptide-dataset-generator">
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
     <style>
         :root {
             --paper-input-container-input: {
                 border: solid #f7f7f9 .1rem;
-                display: inline-block;
             };
 
             --paper-input-container-label:{
@@ -50,10 +53,16 @@
             background-color: var(--paper-indigo-500);
             color: white;
             margin-left: 40px;
+            margin-top: 60px;
             --paper-button-raised-keyboard-focus: {
                 background-color: var(--paper-indigo-a300) !important;
                 color: white !important;
             };
+        }
+
+        paper-checkbox {
+            margin-left: 60px;
+            margin-top: 10px;
         }
 
         paper-dialog {
@@ -68,17 +77,32 @@
         paper-input {
             margin-left: 40px;
             margin-top: 40px;
+        }
+
+        .widthInput {
             width: 35%;
-            display: inline-block;
         }
     </style>
     <template>
-        <div class="fit">
+        <iron-ajax
+            id="unicarbAjax"
+            auto
+            url="{{resolveUrl('unicarbKB/compositions.txt')}}"
+            handle-as="text"
+            on-response="loadUnicarbKbComposition"></iron-ajax>
+
             <form is="iron-form" id="newDatasetForm">
-                <paper-input type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
-                <paper-input type="file" label="List of glycans" on-change="loadGlycanFile"></paper-input>
-                <paper-button raised class="indigo" on-click="generate">generate</paper-button>
-                <paper-dialog id="dialog"></paper-dialog>
+                <div class="layout horizontal justified">
+                    <paper-input class="widthInput" type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
+                    <div class="layout vertical widthInput">
+                        <paper-input type="file" label="List of glycans" on-change="loadGlycanFile"></paper-input>
+                        <paper-checkbox id="unicarbKBData" style="margin-top: 10px"> Use UnicarbKB as dataset</paper-checkbox>
+                    </div>
+                    <div class="layout end-justified">
+                        <paper-button raised class="indigo" on-click="generate">generate</paper-button>
+                    </div>
+                    <paper-dialog id="dialog"></paper-dialog>
+                </div>
             </form>
         </div>
         <paper-spinner id="spinner" alt="Generating dataset" disabled></paper-spinner>
@@ -94,6 +118,10 @@
                     value: []
                 },
                 glycans: {
+                    type: Array,
+                    value: []
+                },
+                glycansUnicarb: {
                     type: Array,
                     value: []
                 },
@@ -122,7 +150,6 @@
                         var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
                             return glycanList.indexOf(item) == pos;
                         });
-
                         data.glycans =nonRedundantGlycanList;
                     };
                 })(file);
@@ -158,9 +185,23 @@
                 })(file);
                 reader.readAsText(file);
             },
+
+            loadUnicarbKbComposition: function(request) {
+                var glycanList = request.detail.response.split(",").filter(String);
+                for(var i=0; i<glycanList.length; i++){glycanList[i] = glycanList[i].trim()};
+
+                var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
+                    return glycanList.indexOf(item) == pos;
+                });
+                this.glycansUnicarb = nonRedundantGlycanList;
+            },
+
             generate: function() {
                 this.$.spinner.active = true;
-
+                if(this.$.unicarbKBData.checked){
+                    this.glycans = this.glycansUnicarb;
+                }
+                console.log("Test:"+this.glycans.length);
                 if(this.glycans.length*this.peptides.length>10000000){
                     this.$.dialog.innerHTML =
                         "<h2>The dataset generator has a limit of 10 000 000 combinations."
