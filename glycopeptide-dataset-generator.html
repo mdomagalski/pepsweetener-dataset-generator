@@ -61,7 +61,7 @@
         }
 
         paper-checkbox {
-            margin-left: 60px;
+            margin-left: 20px;
             margin-top: 10px;
         }
 
@@ -75,22 +75,27 @@
         }
 
         paper-input {
-            margin-left: 40px;
             margin-top: 40px;
         }
 
         .widthInput {
             width: 35%;
         }
+
+        .mainContainerForm {
+            padding-left: 40px;
+            padding-right: 40px;
+        }
     </style>
     <template>
+
         <iron-ajax
             id="unicarbAjax"
             auto
             url="{{resolveUrl('unicarbKB/compositions.txt')}}"
             handle-as="text"
             on-response="loadUnicarbKbComposition"></iron-ajax>
-
+        <div class="mainContainerForm">
             <form is="iron-form" id="newDatasetForm">
                 <div class="layout horizontal justified">
                     <paper-input class="widthInput" type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
