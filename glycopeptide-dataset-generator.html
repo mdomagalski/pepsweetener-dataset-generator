@@ -206,7 +206,6 @@
                 if(this.$.unicarbKBData.checked){
                     this.glycans = this.glycansUnicarb;
                 }
-                console.log("Test:"+this.glycans.length);
                 if(this.glycans.length*this.peptides.length>10000000){
                     this.$.dialog.innerHTML =
                         "<h2>The dataset generator has a limit of 10 000 000 combinations."
