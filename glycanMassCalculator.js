@@ -22,7 +22,11 @@ function getGlycanMolecularMass(glycanComp){
     monomers = glycanComp.split('|');
     for(var monomer in monomers){
         monomer = monomers[monomer].split(':');
-        mass+=glycanMonomers[monomer[0]]*monomer[1];
+        if(monomer.length>1){
+            mass+=glycanMonomers[monomer[0]]*monomer[1];
+        }else{
+            mass+=glycanMonomers[monomer[0]];
+        }
     }
     return mass;
 }
