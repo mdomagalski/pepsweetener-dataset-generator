@@ -98,7 +98,10 @@
         <div class="mainContainerForm">
             <form is="iron-form" id="newDatasetForm">
                 <div class="layout horizontal justified">
-                    <paper-input class="widthInput" type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
+                    <div class="layout vertical widthInput">
+                        <paper-input type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
+                        <paper-checkbox id="filterNSites" checked={{nSitesFilter}} style="margin-top: 10px">Filter N-glycosite containing peptides</paper-checkbox>
+                    </div>
                     <div class="layout vertical widthInput">
                         <paper-input type="file" label="List of glycans" on-change="loadGlycanFile"></paper-input>
                         <paper-checkbox id="unicarbKBData" style="margin-top: 10px"> Use UnicarbKB as dataset</paper-checkbox>
@@ -134,6 +137,10 @@
                     type: Object,
                     notify: true,
                     readOnly: false
+                },
+                nSitesFilter: {
+                    type: Boolean,
+                    value: true
                 },
                 datasetLength: Number
             },
@@ -224,7 +231,7 @@
                 }
                 this.datasetLength =0;
                 for(peptide of this.peptides){
-                    if(peptide.toUpperCase().match(/N[^P][ST]/) || parseFloat(peptide)) {
+                    if((!this.nSitesFilter || peptide.toUpperCase().match(/N[^P][ST]/)) || parseFloat(peptide)) {
                         peptideMass = getPeptideMolecularMass(peptide);
                         for (glycan of this.glycans){
                             glycanMass = glycanMasses[glycan];
