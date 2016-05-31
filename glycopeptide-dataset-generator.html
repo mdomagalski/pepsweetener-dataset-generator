@@ -52,7 +52,6 @@
             font-family: "Roboto";
             background-color: var(--paper-indigo-500);
             color: white;
-            margin-left: 40px;
             margin-top: 60px;
             --paper-button-raised-keyboard-focus: {
                 background-color: var(--paper-indigo-a300) !important;
@@ -76,10 +75,11 @@
 
         paper-input {
             margin-top: 40px;
+            min-width: 450px;
         }
 
-        .widthInput {
-            width: 35%;
+        .fileInput {
+            min-width: 450px;
         }
 
         .mainContainerForm {
@@ -89,6 +89,7 @@
             padding-left: 20px;
             padding-right: 20px;
             padding-bottom: 15px;
+            min-width: 500px;
         }
     </style>
     <template>
@@ -101,12 +102,13 @@
             on-response="loadUnicarbKbComposition"></iron-ajax>
         <div class="mainContainerForm">
             <form is="iron-form" id="newDatasetForm">
-                <div class="layout horizontal justified">
-                    <div class="layout vertical widthInput">
+                <div class="layout horizontal justified wrap">
+                    <div class="fileInput layout vertical widthInput">
                         <paper-input type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
-                        <paper-checkbox id="filterNSites" checked={{nSitesFilter}} style="margin-top: 10px">Filter N-glycosite containing peptides</paper-checkbox>
+                        <paper-checkbox id="filterNSites" checked={{nSitesFilter}} style="margin-top: 10px">Filter peptides containing N-glycosite sequence motif</paper-checkbox>
+                        <paper-checkbox id="filterOSites" checked={{oSitesFilter}} style="margin-top: 10px">Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
                     </div>
-                    <div class="layout vertical widthInput">
+                    <div class="fileInput layout vertical widthInput">
                         <paper-input type="file" label="List of glycans" on-change="loadGlycanFile"></paper-input>
                         <paper-checkbox id="unicarbKBData" style="margin-top: 10px"> Use UnicarbKB as dataset</paper-checkbox>
                     </div>
@@ -145,6 +147,10 @@
                 nSitesFilter: {
                     type: Boolean,
                     value: true
+                },
+                oSitesFilter: {
+                    type: Boolean,
+                    value: false
                 },
                 datasetLength: Number
             },
@@ -235,7 +241,7 @@
                 }
                 this.datasetLength =0;
                 for(peptide of this.peptides){
-                    if((!this.nSitesFilter || peptide.toUpperCase().match(/N[^P][ST]/)) || parseFloat(peptide)) {
+                    if((this.nSitesFilter && peptide.toUpperCase().match(/N[^P][ST]/)) || (this.oSitesFilter && peptide.toUpperCase().match(/[ST]/)) || parseFloat(peptide)) {
                         peptideMass = getPeptideMolecularMass(peptide);
                         for (glycan of this.glycans){
                             glycanMass = glycanMasses[glycan];
