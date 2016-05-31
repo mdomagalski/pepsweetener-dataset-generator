@@ -96,7 +96,6 @@
         <iron-ajax
             id="unicarbAjax"
             auto
-            url=""
             handle-as="text"
             on-response="loadUnicarbKbComposition">
         </iron-ajax>
@@ -173,13 +172,13 @@
             _loadUnicarbNGlycan: function(){
                 if(this.unicarbKBNGlycan){
                     this.unicarbKBAll=false;
-                    this.$.unicarbAjax.url = 'unicarbKB/compositions-nglycans.txt';
+                    this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
                 }
             },
             _loadUnicarbAll: function(){
                 if(this.unicarbKBAll){
                     this.unicarbKBNGlycan=false;
-                    this.$.unicarbAjax.url = 'unicarbKB/compositions-all.txt';
+                    this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-all.txt');
                 }
             },
             loadGlycanFile: function(evt){
@@ -234,7 +233,6 @@
             loadUnicarbKbComposition: function(request) {
                 var glycanList = request.detail.response.split(",").filter(String);
                 for(var i=0; i<glycanList.length; i++){glycanList[i] = glycanList[i].trim()};
-
                 var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
                     return glycanList.indexOf(item) == pos;
                 });
