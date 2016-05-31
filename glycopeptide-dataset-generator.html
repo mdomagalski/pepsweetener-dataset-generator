@@ -93,24 +93,25 @@
         }
     </style>
     <template>
-
         <iron-ajax
             id="unicarbAjax"
             auto
-            url="{{resolveUrl('unicarbKB/compositions.txt')}}"
+            url=""
             handle-as="text"
-            on-response="loadUnicarbKbComposition"></iron-ajax>
+            on-response="loadUnicarbKbComposition">
+        </iron-ajax>
         <div class="mainContainerForm">
             <form is="iron-form" id="newDatasetForm">
                 <div class="layout horizontal justified wrap">
                     <div class="fileInput layout vertical widthInput">
                         <paper-input type=file label="List of peptides" on-change="loadPeptideFile"></paper-input>
-                        <paper-checkbox id="filterNSites" checked={{nSitesFilter}} style="margin-top: 10px">Filter peptides containing N-glycosite sequence motif</paper-checkbox>
-                        <paper-checkbox id="filterOSites" checked={{oSitesFilter}} style="margin-top: 10px">Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
+                        <paper-checkbox id="filterNSites" checked={{nSitesFilter}}>Filter peptides containing N-glycosite sequence motif</paper-checkbox>
+                        <paper-checkbox id="filterOSites" checked={{oSitesFilter}}>Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
                     </div>
                     <div class="fileInput layout vertical widthInput">
                         <paper-input type="file" label="List of glycans" on-change="loadGlycanFile"></paper-input>
-                        <paper-checkbox id="unicarbKBData" style="margin-top: 10px"> Use UnicarbKB as dataset</paper-checkbox>
+                        <paper-checkbox id="unicarbKBNGlycans" checked={{unicarbKBNGlycan}}> Use UnicarbKB N-glycans</paper-checkbox>
+                        <paper-checkbox id="unicarbKBAll" checked={{unicarbKBAll}}> Use UnicarbKB</paper-checkbox>
                     </div>
                     <div class="layout end-justified">
                         <paper-button raised class="indigo" on-click="generate">generate</paper-button>
@@ -144,6 +145,16 @@
                     notify: true,
                     readOnly: false
                 },
+                unicarbKBNGlycan: {
+                    type: Boolean,
+                    value: false,
+                    observer: "_loadUnicarbNGlycan"
+                },
+                unicarbKBAll: {
+                    type: Boolean,
+                    value: false,
+                    observer: "_loadUnicarbAll"
+                },
                 nSitesFilter: {
                     type: Boolean,
                     value: true
@@ -157,6 +168,18 @@
             attached: function(){
                 if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
                     alert('The File APIs are not fully supported in this browser.');
+                }
+            },
+            _loadUnicarbNGlycan: function(){
+                if(this.unicarbKBNGlycan){
+                    this.unicarbKBAll=false;
+                    this.$.unicarbAjax.url = 'unicarbKB/compositions-nglycans.txt';
+                }
+            },
+            _loadUnicarbAll: function(){
+                if(this.unicarbKBAll){
+                    this.unicarbKBNGlycan=false;
+                    this.$.unicarbAjax.url = 'unicarbKB/compositions-all.txt';
                 }
             },
             loadGlycanFile: function(evt){
@@ -220,7 +243,7 @@
 
             generate: function() {
                 this.$.spinner.active = true;
-                if(this.$.unicarbKBData.checked){
+                if(this.$.unicarbKBAll.checked || this.$.unicarbKBNGlycans.checked){
                     this.glycans = this.glycansUnicarb;
                 }
                 if(this.glycans.length*this.peptides.length>10000000){
