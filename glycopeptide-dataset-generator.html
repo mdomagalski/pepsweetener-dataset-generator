@@ -89,7 +89,7 @@
             padding-left: 20px;
             padding-right: 20px;
             padding-bottom: 15px;
-            min-width: 500px;
+            min-width: 700px;
         }
     </style>
     <template>
@@ -241,7 +241,10 @@
                 }
                 this.datasetLength =0;
                 for(peptide of this.peptides){
-                    if((this.nSitesFilter && peptide.toUpperCase().match(/N[^P][ST]/)) || (this.oSitesFilter && peptide.toUpperCase().match(/[ST]/)) || parseFloat(peptide)) {
+                    if(((!this.nSitesFilter && !this.oSitesFilter)
+                        || this.nSitesFilter && peptide.toUpperCase().match(/N[^P][ST]/))
+                        || (this.oSitesFilter && peptide.toUpperCase().match(/[ST]/))
+                        || parseFloat(peptide)) {
                         peptideMass = getPeptideMolecularMass(peptide);
                         for (glycan of this.glycans){
                             glycanMass = glycanMasses[glycan];
