@@ -89,7 +89,19 @@
             padding-left: 20px;
             padding-right: 20px;
             padding-bottom: 15px;
-            min-width: 700px;
+            min-width: 760px;
+        }
+
+        .sectionHeading {
+            font-family: 'Roboto', 'Noto', 'sans-serif';
+            -webkit-font-smoothing: antialiased;
+            font-weight: 400;
+            font-size: 17px;
+            font-height: 23px;
+            padding-bottom: 10px;
+            padding-top: 25px;
+            -webkit-margin-before: 1em;
+            -webkit-margin-after: 0em;
         }
     </style>
     <template>
@@ -116,6 +128,16 @@
                         <paper-button raised class="indigo" on-click="generate">generate</paper-button>
                     </div>
                     <paper-dialog id="dialog"></paper-dialog>
+                </div>
+                <div class="layout vertical">
+                    <div class="sectionHeading">Fixed modifications</div>
+                    <paper-checkbox id="acetylationK" checked={{acetylationK}}> Acetylation (K)</paper-checkbox>
+                    <paper-checkbox id="acetylationNterm" checked={{acetylationNterm}}> Acetylation (N-term)</paper-checkbox>
+                    <paper-checkbox id="amidatedCterm" checked={{amidatedCterm}}> Amidated (C-term)</paper-checkbox>
+                    <paper-checkbox id="carbamidomethylationC" checked={{carbamidomethylationC}}> Carbamidomethylation (C)</paper-checkbox>
+                    <paper-checkbox id="carbamylK" checked={{carbamylK}}> Carbamyl (K)</paper-checkbox>
+                    <paper-checkbox id="deamidatedNQ" checked={{deamidatedNQ}}> Deaminated (NQ)</paper-checkbox>
+                    <paper-checkbox id="oxidationM" checked={{oxidationM}}> Oxidation (M)</paper-checkbox>
                 </div>
             </form>
         </div>
@@ -162,7 +184,62 @@
                     type: Boolean,
                     value: false
                 },
+                acetylationK: {
+                    type: Boolean,
+                    value: false
+                },
+                acetylationNterm: {
+                    type: Boolean,
+                    value: false
+                },
+                amidatedCterm: {
+                    type: Boolean,
+                    value: false
+                },
+                carbamidomethylationC: {
+                    type: Boolean,
+                    value: false
+                },
+                carbamylK: {
+                    type: Boolean,
+                    value: false
+                },
+                deamidatedNQ: {
+                    type: Boolean,
+                    value: false
+                },
+                oxidationM: {
+                    type: Boolean,
+                    value: false
+                },
                 datasetLength: Number
+            },
+            addFixedModifications: function() {
+                for (idx in this.peptides){
+                    if (this.acetylationK){
+                        this.peptides[idx] = this.peptides[idx].replace('K','K[+42.010565]');
+                    }
+                    if (this.acetylationNterm){
+                        this.peptides[idx] = this.peptides[idx].substr(0,1)+'[+42.010565]'+this.peptides[idx].substr(1);
+                    }
+                    if (this.amidatedCterm){
+                        this.peptides[idx] = this.peptides[idx]+'[-0.9840]';
+                    }
+                    if (this.carbamidomethylationC){
+                        this.peptides[idx] = this.peptides[idx].replace('C','C[+57.021464]');
+                    }
+                    if (this.carbamylK){
+                        this.peptides[idx] = this.peptides[idx].replace('K','K[+43.00581]');
+                    }
+                    if (this.deamidatedNQ){
+                        this.peptides[idx] = this.peptides[idx].replace('N','N[+0.9840]');
+                        this.peptides[idx] = this.peptides[idx].replace('Q','Q[+0.9840]');
+                    }
+                    if (this.oxidationM){
+                        this.peptides[idx] = this.peptides[idx].replace('M','M[+15.9949]');
+                    }
+                    console.log(this.peptides[idx]);
+                }
             },
             attached: function(){
                 if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
@@ -240,7 +317,6 @@
             },
 
             generate: function() {
-                this.$.spinner.active = true;
                 if(this.$.unicarbKBAll.checked || this.$.unicarbKBNGlycans.checked){
                     this.glycans = this.glycansUnicarb;
                 }
@@ -251,10 +327,12 @@
                     this.$.dialog.open();
                     this.$.spinner.active = false;
                 }else{
+                    this.addFixedModifications();
                     this.combineGlycansAndPeptides();
                 }
             },
             combineGlycansAndPeptides: function() {
+                this.$.spinner.active = true;
                 glycopeptides = {};
                 glycanMasses = {};
                 for (glycan of this.glycans){
