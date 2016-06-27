@@ -1,6 +1,6 @@
 var H2O = 18.010565;
 
-var modificationPattern = /\[(\+\d+|\-\d+)\]/g;
+var modificationPattern = /\[[+-]?\d+(\.\d+)?\]/g ;
 
 var aa = {
     'A' : 71.037114,

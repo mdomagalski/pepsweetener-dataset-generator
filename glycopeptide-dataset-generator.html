@@ -260,15 +260,21 @@
                 for (var mod in this.fixedModifications){
                     if (this.fixedModifications[mod][0]=='Nterm'){
                         for (var idx in this.peptides){
-                            this.peptides[idx] = this.peptides[idx].substr(0,1)+this.fixedModifications[mod][1]+this.peptides[idx].substr(1);
+                            if (!this.peptides[idx].startsWith(this.peptides[idx].substr(0,1)+this.fixedModifications[mod][1])){
+                                this.peptides[idx] = this.peptides[idx].substr(0,1)+this.fixedModifications[mod][1]+this.peptides[idx].substr(1);
+                            }
                         }
-                    }else if(mod[0]=='Cterm'){
+                    }else if(this.fixedModifications[mod][0]=='Cterm'){
                         for (var idx in this.peptides) {
-                            this.peptides[idx] = this.peptides[idx] + this.fixedModifications[mod][1];
+                            if (!this.peptides[idx].endsWith(this.fixedModifications[mod][1])) {
+                                this.peptides[idx] = this.peptides[idx] + this.fixedModifications[mod][1];
+                            }
                         }
                     }else{
                         for (idx in this.peptides) {
-                            this.peptides[idx] = this.peptides[idx].replace(this.fixedModifications[mod][0], this.fixedModifications[mod][1]);
+                            if (this.peptides[idx].indexOf(this.fixedModifications[mod][1])===-1) {
+                                this.peptides[idx] = this.peptides[idx].replace(this.fixedModifications[mod][0], this.fixedModifications[mod][1])
+                            };
                         }
                     }
                 }
