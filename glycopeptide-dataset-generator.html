@@ -11,6 +11,7 @@
 
 <script src="peptideMassCalculator.js"></script>
 <script src="glycanMassCalculator.js"></script>
+<script src="../fishtones-js/dist/fishtones-js-bundle-min.js"></script>
 
 <!-- Defines element markup -->
 <dom-module id="glycopeptide-dataset-generator">
@@ -234,47 +235,53 @@
                 },
                 datasetLength: Number
             },
+            parsePeptides: function() {
+                for(var idx in this.peptides){
+                    this.peptides[idx]= new fishtones.dry.RichSequence().fromString(this.peptides[idx]);
+                }
+            },
             addFixedModifications: function() {
+                var modifications = fishtones.dry.ResidueModificationDictionary;
                 if (this.acetylationK){
-                    this.fixedModifications.push(['K','K[+42.010565]']);
+                    this.fixedModifications.push(['K','Acetyl']);
                 }
                 if (this.acetylationNterm){
-                    this.fixedModifications.push(['Nterm','[+42.010565]']);
+                    this.fixedModifications.push(['Nterm','Acetyl']);
                 }
                 if (this.amidatedCterm){
-                    this.fixedModifications.push(['Cterm','[-0.9840]']);
+                    this.fixedModifications.push(['Cterm','Amidated']);
                 }
                 if (this.carbamidomethylationC){
-                    this.fixedModifications.push(['C','C[+57.021464]']);
+                    this.fixedModifications.push(['C','Carbamidomethyl']);
                 }
                 if (this.carbamylK){
-                    this.fixedModifications.push(['K','K[+43.00581]']);
+                    this.fixedModifications.push(['K','Carbamyl']);
                 }
                 if (this.deamidatedNQ){
-                    this.fixedModifications.push(['N','N[+0.9840]']);
-                    this.fixedModifications.push(['Q','Q[+0.9840]']);
+                    this.fixedModifications.push(['N','Deamidated']);
+                    this.fixedModifications.push(['Q','Deamidated']);
                 }
                 if (this.oxidationM){
-                    this.fixedModifications.push(['M','M[+15.9949]']);
+                    this.fixedModifications.push(['M','Oxidation']);
                 }
                 for (var mod in this.fixedModifications){
                     if (this.fixedModifications[mod][0]=='Nterm'){
                         for (var idx in this.peptides){
-                            if (!this.peptides[idx].startsWith(this.peptides[idx].substr(0,1)+this.fixedModifications[mod][1])){
-                                this.peptides[idx] = this.peptides[idx].substr(0,1)+this.fixedModifications[mod][1]+this.peptides[idx].substr(1);
-                            }
+                            this.peptides[idx].addModification(-1, modifications.get(this.fixedModifications[mod][1]));
                         }
                     }else if(this.fixedModifications[mod][0]=='Cterm'){
                         for (var idx in this.peptides) {
-                            if (!this.peptides[idx].endsWith(this.fixedModifications[mod][1])) {
-                                this.peptides[idx] = this.peptides[idx] + this.fixedModifications[mod][1];
-                            }
+                            this.peptides[idx].addModification(this.peptides[idx].size(), modifications.get(this.fixedModifications[mod][1]));
                         }
                     }else{
                         for (idx in this.peptides) {
-                            if (this.peptides[idx].indexOf(this.fixedModifications[mod][1])===-1) {
-                                this.peptides[idx] = this.peptides[idx].replace(this.fixedModifications[mod][0], this.fixedModifications[mod][1])
-                            };
+                            var positions = [];
+                            for(var i=0; i<this.peptides[idx].toAAString().length;i++){
+                                if(this.peptides[idx].toAAString()[i] === this.fixedModifications[mod][0]) positions.push(i);
+                            }
+                            for (i in positions){
+                                this.peptides[idx].addModification(positions[i], modifications.get(this.fixedModifications[mod][1]));
+                            }
                         }
                     }
                 }
@@ -329,6 +336,7 @@
                         });
 
                         data.peptides = nonRedundantPeptideList;
+                        data.parsePeptides();
                     };
                 })(file);
                 reader.readAsText(file);
@@ -371,6 +379,7 @@
                 }
             },
             combineGlycansAndPeptides: function() {
+                var massBuilder = fishtones.dry.MassBuilder;
                 glycopeptides = {};
                 glycanMasses = {};
                 for (glycan of this.glycans){
@@ -379,10 +388,10 @@
                 this.datasetLength =0;
                 for(peptide of this.peptides){
                     if(((!this.nSitesFilter && !this.oSitesFilter)
-                        || this.nSitesFilter && peptide.toUpperCase().match(/N[^P][ST]/))
-                        || (this.oSitesFilter && peptide.toUpperCase().match(/[ST]/))
+                        || this.nSitesFilter && peptide.toAAString().match(/N[^P][ST]/))
+                        || (this.oSitesFilter && peptide.toAAString().match(/[ST]/))
                         || parseFloat(peptide)) {
-                        peptideMass = getPeptideMolecularMass(peptide);
+                        peptideMass = massBuilder.computeMassRichSequence(peptide);
                         for (glycan of this.glycans){
                             glycanMass = glycanMasses[glycan];
                             glycopeptideMass = peptideMass+glycanMass;

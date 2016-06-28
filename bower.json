@@ -19,6 +19,7 @@
     "paper-spinner": "PolymerElements/paper-spinner#^1.1.1",
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.4",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.1.3",
-    "iron-ajax": "PolymerElements/iron-ajax#^1.2.0"
+    "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
+    "fishtones-js": "fishtones#*"
   }
 }
