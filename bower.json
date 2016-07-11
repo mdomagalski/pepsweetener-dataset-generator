@@ -20,6 +20,9 @@
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.4",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.1.3",
     "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
-    "fishtones-js": "fishtones#*"
+    "fishtones-js": "fishtones#*",
+    "paper-tooltip": "PolymerElements/paper-tooltip#^1.1.2",
+    "iron-icons": "PolymerElements/iron-icons#^1.1.3",
+    "peptide-parser": "https://mdomagalski@bitbucket.org/sib-pig/peptide-parser.git"
   }
 }
