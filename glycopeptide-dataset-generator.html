@@ -83,7 +83,8 @@
             font-family: "Roboto";
             background-color: var(--paper-indigo-500);
             color: white;
-            margin: 80px 0 0 20px;
+            right: 0;
+            max-width: 200px;
             --paper-button-raised-keyboard-focus: {
                 background-color: var(--paper-indigo-a300) !important;
                 color: white !important;
@@ -142,6 +143,10 @@
             border-bottom: 1px solid black;
             padding-bottom: 20px;
             margin-bottom: 30px;
+        }
+
+        .buttonContainer {
+            height: 50px;
         }
 
         .modificationsBox{
@@ -221,7 +226,7 @@
                 </div>
                 <div class="layout vertical">
                     <div class="sectionHeading"> Fixed modifications</div>
-                    <div class="modificationsBox layout horizontal wrap">
+                    <div class="modificationsBox layout horizontal wrap section">
                         <div class="modificationCheckbox layout vertical">
                             <paper-checkbox id="acetylationK" checked={{acetylationK}}> Acetylation (K)</paper-checkbox>
                             <paper-checkbox id="acetylationNterm" checked={{acetylationNterm}}> Acetylation (N-term)</paper-checkbox>
@@ -247,8 +252,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="layout end-justified">
-                    <paper-button raised class="indigo" id="submit" on-click="generate">generate</paper-button>
+                <div class="buttonContainer">
+                    <paper-button raised class="indigo" id="submit" on-click="generate"><iron-icon icon="create-new-folder"></iron-icon>generate</paper-button>
                 </div>
             </form>
         </div>
