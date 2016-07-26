@@ -1,5 +1,6 @@
 <!-- Imports polymer -->
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../paper-input/paper-input-container.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-input/paper-textarea.html">
@@ -59,7 +60,32 @@
             --paper-input-error: {
                 font-size: 18px;
                 margin-top: 5px;
-            }
+            };
+
+            --paper-card: {
+                display: inline;
+                box-shadow: none;
+            };
+
+            --paper-card-header:{
+                background-color:var(--paper-indigo-400);
+                margin: 10px;
+            };
+            --paper-card-header-color: white;
+
+            --paper-card-header-text: {
+                font-size: 20px;
+                padding: 10px;
+            };
+        }
+
+        .card-content {
+            margin: 10px;
+        }
+
+        .card-actions {
+            margin: 5px 16px;
+            padding: 0;
         }
 
         paper-button {
@@ -67,7 +93,7 @@
         }
 
         paper-radio-group {
-            margin-top: 20px;
+            margin-bottom: 10px;
         }
 
         paper-spinner {
@@ -92,7 +118,6 @@
         }
 
         paper-checkbox {
-            margin-left: 10px;
             margin-top: 10px;
         }
 
@@ -121,8 +146,6 @@
         .mainContainerForm {
             margin-left: 36px;
             margin-right: 36px;
-            padding-left: 20px;
-            padding-right: 20px;
             padding-bottom: 15px;
             border: 1px solid rgba(0, 0, 0, 0.2);
             box-shadow: 5px 5px 6px -1px rgba(0, 0, 0, 0.4);
@@ -146,6 +169,7 @@
         }
 
         .buttonContainer {
+            margin-right: 10px;
             height: 50px;
         }
 
@@ -171,6 +195,20 @@
             display: none;
         }
 
+        .layout {
+            padding-left: 10px;
+        }
+
+        div[invalid]{
+            border: 2px solid var(--paper-red-500);
+        }
+
+        div[invalid]:before {
+            color: var(--paper-red-500);
+            font-size: 20px;
+            content: "Missing input!:";
+        }
+
     </style>
     <template>
         <iron-ajax
@@ -182,78 +220,97 @@
         <div class="mainContainerForm">
             <form is="iron-form" id="newDatasetForm">
                 <peptide-parser id="peptideParser"></peptide-parser>
-                <paper-radio-group selected="digest">
-                    <paper-radio-button name="digest" on-change="_showProteinDigester">Protein digestion</paper-radio-button>
-                    <paper-radio-button name="upload" on-change="_showPeptideUpload">List of peptides</paper-radio-button>
-                </paper-radio-group>
-                <div class="layout horizontal wrap">
-                    <protein-digester id="digester" peptides={{peptides}}></protein-digester>
-                </div>
-                <div class="layout horizontal wrap">
-                    <paper-input id="peptideInput" type=file label="List of peptides" error-message="Please check the peptide list!" on-change="loadPeptideFile" disabled></paper-input>
-                    <paper-tooltip for="peptideInput">
-                        <b>Peptide input Tips:</b></br></br>
-                        - Only plain text files are supported</br>
-                        - Peptides must be separated by a comma</br>
-                        - Check the about section to learn how to include modifications</br>
-                        - Lines starting with "#" character are ignored
-                    </paper-tooltip>
-                </div>
-                <div class="layout horizontal wrap section">
-                    <div class="fileInput layout vertical widthInput">
-                        <paper-checkbox id="filterNSites" checked={{nSitesFilter}}>Filter peptides containing N-glycosite sequence motif</paper-checkbox>
-                        <paper-checkbox id="filterOSites" checked={{oSitesFilter}}>Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
-                    </div>
-                    <paper-dialog id="dialog"></paper-dialog>
-                </div>
-                <div class="fileInput layout vertical widthInput section">
-                    <paper-input id="glycanInput" label="List of glycans" type="file" label="List of glycans" error-message="Please check the glycan list!" on-change="loadGlycanFile"></paper-input>
-                    <paper-tooltip for="glycanInput">
-                        <b>Glycan input Tips:</b></br></br>
-                        - Only plain text files are supported</br>
-                        - Glycan compositions must be separated by a comma</br>
-                        - Only the following glycan monomers are permitted:</br>
-                        <code>Pen, dHex, Hex, HexA, HexNAc, Kdn, NeuAc, NeuGc, Fuc, S, P</code></br>
-                        - Count for each composition should be placed after a colon</br>
-                        - Each glycan monomer is separated by vertical bar character (|)</br>
-                        - Glycan composition spelling is case sensitive</br>
-                        - A valid glycan composition examples:</br>
-                        <code>Hex:4|S:1|NeuAc:1|HexNAc:5, Hex:5|dHex|HexNAc:5 </code></br>
-                        (missing count value after monomer is interpreted as one occurrence)</br>
-                    </paper-tooltip>
-                    <paper-checkbox id="unicarbKBNGlycans" checked={{unicarbKBNGlycan}}> Use UnicarbKB N-glycans</paper-checkbox>
-                    <paper-checkbox id="unicarbKBAll" checked={{unicarbKBAll}}> Use UnicarbKB</paper-checkbox>
-                </div>
-                <div class="layout vertical">
-                    <div class="sectionHeading"> Fixed modifications</div>
-                    <div class="modificationsBox layout horizontal wrap section">
-                        <div class="modificationCheckbox layout vertical">
-                            <paper-checkbox id="acetylationK" checked={{acetylationK}}> Acetylation (K)</paper-checkbox>
-                            <paper-checkbox id="acetylationNterm" checked={{acetylationNterm}}> Acetylation (N-term)</paper-checkbox>
+                <paper-card heading="Peptide input ({{peptides.length}})" invalid>
+                    <div id="peptideInputContainer" class="card-content">
+                        <paper-radio-group selected="digest">
+                            <paper-radio-button name="digest" on-change="_showProteinDigester">Protein digestion</paper-radio-button>
+                            <paper-radio-button name="upload" on-change="_showPeptideUpload">List of peptides</paper-radio-button>
+                        </paper-radio-group>
+                        <div class="layout horizontal wrap">
+                            <protein-digester id="digester" peptides={{peptides}}></protein-digester>
                         </div>
-                        <div class="modificationCheckbox layout vertical">
-                            <paper-checkbox id="amidatedCterm" checked={{amidatedCterm}}> Amidated (C-term)</paper-checkbox>
-                            <paper-checkbox id="carbamidomethylationC" checked={{carbamidomethylationC}}> Carbamidomethylation (C)</paper-checkbox>
-                        </div>
-                        <div class="modificationCheckbox layout vertical">
-                            <paper-checkbox id="carbamylK" checked={{carbamylK}}> Carbamyl (K)</paper-checkbox>
-                            <paper-checkbox id="deamidatedNQ" checked={{deamidatedNQ}}> Deaminated (NQ)</paper-checkbox>
-                        </div>
-                        <div class="modificationCheckbox layout vertical">
-                            <paper-checkbox id="tmt2plexK" checked={{TMT2plexK}}> TMT2plex(K)</paper-checkbox>
-                            <paper-checkbox id="tmt2plexNterm" checked={{TMT2plexNterm}}> TMT2plex (N-term)</paper-checkbox>
-                        </div>
-                        <div class="modificationCheckbox layout vertical">
-                            <paper-checkbox id="tmt6plexK" checked={{TMT6plexK}}> TMT6plex (K)</paper-checkbox>
-                            <paper-checkbox id="tmt6plexNterm" checked={{TMT6plexNterm}}> TMT6plex (N-term)</paper-checkbox>
-                        </div>
-                        <div class="modificationCheckbox layout vertical">
-                            <paper-checkbox id="oxidationM" checked={{oxidationM}}> Oxidation (M)</paper-checkbox>
+                        <div class="layout horizontal wrap">
+                            <paper-input id="peptideInput" type=file label="List of peptides" error-message="Please check the peptide list!" on-change="loadPeptideFile" disabled></paper-input>
+                            <paper-tooltip for="peptideInput">
+                                <b>Peptide input Tips:</b></br></br>
+                                - Only plain text files are supported</br>
+                                - Peptides must be separated by a comma</br>
+                                - Check the about section to learn how to include modifications</br>
+                                - Lines starting with "#" character are ignored
+                            </paper-tooltip>
                         </div>
                     </div>
-                </div>
+                    <div class="card-actions">
+                        <div class="layout horizontal wrap section">
+                            <div class="fileInput layout vertical widthInput">
+                                <paper-checkbox id="filterNSites" checked={{nSitesFilter}}>Filter peptides containing N-glycosite sequence motif</paper-checkbox>
+                                <paper-checkbox id="filterOSites" checked={{oSitesFilter}}>Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
+                            </div>
+                            <paper-dialog id="dialog"></paper-dialog>
+                        </div>
+                    </div>
+                </paper-card>
+                <paper-card heading="Glycan input ({{glycans.length}})">
+                    <div id="glycanInputContainer" class="card-content">
+                        <paper-radio-group id="glycanChoice" selected="unicarbKBNGlycans">
+                            <paper-radio-button on-change="_loadUnicarbNGlycans" name="unicarbKBNGlycans">Use UniCarbKB N-glycans</paper-radio-button>
+                            <paper-radio-button on-change="_loadUnicarbAll" name="unicarbKBAll">Use UniCarbKB</paper-radio-button>
+                            <paper-radio-button name="upload" on-change="_showGlycanUpload">List of glycans</paper-radio-button>
+                        </paper-radio-group>
+                        <div class="fileInput layout vertical widthInput">
+                            <paper-input id="glycanInput" label="List of glycans" type="file" label="List of glycans" error-message="Please check the glycan list!" on-change="loadGlycanFile" disabled></paper-input>
+                            <paper-tooltip for="glycanInput">
+                                <b>Glycan input Tips:</b></br></br>
+                                - Only plain text files are supported</br>
+                                - Glycan compositions must be separated by a comma</br>
+                                - Only the following glycan monomers are permitted:</br>
+                                <code>Pen, dHex, Hex, HexA, HexNAc, Kdn, NeuAc, NeuGc, Fuc, S, P</code></br>
+                                - Count for each composition should be placed after a colon</br>
+                                - Each glycan monomer is separated by vertical bar character (|)</br>
+                                - Glycan composition spelling is case sensitive</br>
+                                - A valid glycan composition examples:</br>
+                                <code>Hex:4|S:1|NeuAc:1|HexNAc:5, Hex:5|dHex|HexNAc:5 </code></br>
+                                (missing count value after monomer is interpreted as one occurrence)</br>
+                            </paper-tooltip>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <div class="layout horizontal wrap section">
+
+                        </div>
+                    </div>
+                </paper-card>
+                <paper-card heading="Fixed modifications">
+                    <div class="card-content">
+                        <div class="modificationsBox layout horizontal wrap section">
+                            <div class="modificationCheckbox layout vertical">
+                                <paper-checkbox id="acetylationK" checked={{acetylationK}}> Acetylation (K)</paper-checkbox>
+                                <paper-checkbox id="acetylationNterm" checked={{acetylationNterm}}> Acetylation (N-term)</paper-checkbox>
+                            </div>
+                            <div class="modificationCheckbox layout vertical">
+                                <paper-checkbox id="amidatedCterm" checked={{amidatedCterm}}> Amidated (C-term)</paper-checkbox>
+                                <paper-checkbox id="carbamidomethylationC" checked={{carbamidomethylationC}}> Carbamidomethylation (C)</paper-checkbox>
+                            </div>
+                            <div class="modificationCheckbox layout vertical">
+                                <paper-checkbox id="carbamylK" checked={{carbamylK}}> Carbamyl (K)</paper-checkbox>
+                                <paper-checkbox id="deamidatedNQ" checked={{deamidatedNQ}}> Deaminated (NQ)</paper-checkbox>
+                            </div>
+                            <div class="modificationCheckbox layout vertical">
+                                <paper-checkbox id="tmt2plexK" checked={{TMT2plexK}}> TMT2plex(K)</paper-checkbox>
+                                <paper-checkbox id="tmt2plexNterm" checked={{TMT2plexNterm}}> TMT2plex (N-term)</paper-checkbox>
+                            </div>
+                            <div class="modificationCheckbox layout vertical">
+                                <paper-checkbox id="tmt6plexK" checked={{TMT6plexK}}> TMT6plex (K)</paper-checkbox>
+                                <paper-checkbox id="tmt6plexNterm" checked={{TMT6plexNterm}}> TMT6plex (N-term)</paper-checkbox>
+                            </div>
+                            <div class="modificationCheckbox layout vertical">
+                                <paper-checkbox id="oxidationM" checked={{oxidationM}}> Oxidation (M)</paper-checkbox>
+                            </div>
+                        </div>
+                    </div>
+                </paper-card>
                 <div class="buttonContainer">
-                    <paper-button raised class="indigo" id="submit" on-click="generate"><iron-icon icon="create-new-folder"></iron-icon>generate</paper-button>
+                    <paper-button raised class="indigo" id="submit" on-click="generate"><iron-icon icon="create-new-folder"></iron-icon>&nbsp;generate</paper-button>
                 </div>
             </form>
         </div>
@@ -273,6 +330,10 @@
                     type: Array,
                     value: []
                 },
+                combinationLimit: {
+                    type: Number,
+                    value: 10000000
+                },
                 glycansUnicarb: {
                     type: Array,
                     value: []
@@ -282,19 +343,9 @@
                     notify: true,
                     readOnly: false
                 },
-                unicarbKBNGlycan: {
-                    type: Boolean,
-                    value: false,
-                    observer: "_loadUnicarbNGlycan"
-                },
-                unicarbKBAll: {
-                    type: Boolean,
-                    value: false,
-                    observer: "_loadUnicarbAll"
-                },
                 nSitesFilter: {
                     type: Boolean,
-                    value: true
+                    value: false
                 },
                 oSitesFilter: {
                     type: Boolean,
@@ -424,7 +475,7 @@
                             var peptide    = new fishtones.dry.RichSequence().fromString(this.peptides[idx].toString());
                             var shortcut   = richSeqShortcuter.richSeqToSequencePtr(peptide);
                             var revPeptide = richSeqShortcuter.richSeqFrom(shortcut);
-                            console.log(shortcut);
+                            //console.log(shortcut);
                         }
                     }
                     //this.peptides[idx] = richSeqShortcuter.richSeqToString(this.peptides[idx]);
@@ -435,26 +486,27 @@
                     alert('The File APIs are not fully supported in this browser.');
                 }
                 this.massBuilder = fishtones.dry.MassBuilder;
+                this._loadUnicarbNGlycans();
             },
-            _loadUnicarbNGlycan: function(){
-                if(this.unicarbKBNGlycan){
-                    this.unicarbKBAll=false;
-                    this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
-                }
+            _loadUnicarbNGlycans: function(){
+                this._hideGlycanUpload();
+                this.glycans=Array();
+                this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
             },
             _loadUnicarbAll: function(){
-                if(this.unicarbKBAll){
-                    this.unicarbKBNGlycan=false;
-                    this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-all.txt');
-                }
+                this._hideGlycanUpload();
+                this.glycans=Array();
+                this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-all.txt');
             },
-            validateGlycans: function(){
+            _validateGlycans: function(){
                 if(this.glycans.length==0){
                     this.$.glycanInput.setAttribute('invalid', true);
+                    this.$.glycanInputContainer.setAttribute('invalid', true);
                     this.$.spinner.active = false;
                     return false;
                 }
                 this.$.glycanInput.removeAttribute('invalid');
+                this.$.glycanInputContainer.removeAttribute('invalid');
                 return true;
             },
             loadGlycanFile: function(evt){
@@ -481,13 +533,15 @@
                 })(file);
                 reader.readAsText(file);
             },
-            validatePeptides: function () {
+            _validatePeptides: function () {
                 if (this.peptides.length==0){
                     this.$.peptideInput.setAttribute('invalid', true);
+                    this.$.peptideInputContainer.setAttribute('invalid', true);
                     this.$.spinner.active = false;
                     return false;
                 }
                 this.$.peptideInput.removeAttribute('invalid');
+                this.$.peptideInputContainer.removeAttribute('invalid');
                 return true;
             },
             loadPeptideFile: function(evt){
@@ -511,6 +565,7 @@
                         });
                         data.$.peptideParser.peptideStrings = nonRedundantPeptideList;
                         data.peptides = data.$.peptideParser.peptideObjects;
+                        data._validatePeptides();
                     };
                 })(file);
                 reader.readAsText(file);
@@ -521,29 +576,28 @@
                 var nonRedundantGlycanList = glycanList.filter(function(item, pos) {
                     return glycanList.indexOf(item) == pos;
                 });
-                this.glycansUnicarb = nonRedundantGlycanList;
+                this.glycans = nonRedundantGlycanList;
+                this._validateGlycans();
+            },
+            _checkCombinationLimit: function(){
+                if(this.glycans.length*this.peptides.length>this.combinationLimit){
+                    this.$.dialog.innerHTML =
+                        "<h2>The dataset generator has a limit of "+
+                        this.combinationLimit.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        +" combinations.</br> Please reduce list of peptides and/or glycans.</h2>";
+                    this.$.dialog.open();
+                    this.$.spinner.active = false;
+                    return false;
+                }
+                return true;
             },
             generate: function() {
                 this.$.spinner.active = true;
-                if(this.$.unicarbKBAll.checked || this.$.unicarbKBNGlycans.checked){
-                    this.glycans = this.glycansUnicarb;
-                }
                 if(typeof this.peptides[0]=== 'string'){
                     this.$.peptideParser.peptideStrings = this.peptides;
                     this.peptides = this.$.peptideParser.peptideObjects;
                 }
-                this.validatePeptides();
-
-                if(this.glycans.length*this.peptides.length>10000000){
-                    this.$.dialog.innerHTML =
-                        "<h2>The dataset generator has a limit of 10 000 000 combinations."
-                        +" Please reduce list of peptides and/or glycans.</h2>";
-                    this.$.dialog.open();
-                    this.$.spinner.active = false;
-                }else{
-                    if(this.validatePeptides()&&this.validateGlycans()){
-
-                    }
+                if(this._validatePeptides() && this._validateGlycans() && this._checkCombinationLimit()) {
                     this.addFixedModifications();
                     this.combineGlycansAndPeptides();
                 }
@@ -556,7 +610,6 @@
                 }
                 this.datasetLength =0;
                 for(peptide of this.peptides){
-                    console.log(peptide.toString());
                     if(((!this.nSitesFilter && !this.oSitesFilter)
                         || this.nSitesFilter && peptide.toString().match(/N[^P][ST]/))
                         || (this.oSitesFilter && peptide.toString().match(/[ST]/))
@@ -575,7 +628,6 @@
                     }
                 }
                 this.glycopeptides = glycopeptides;
-                console.log(glycopeptides);
                 this.$.spinner.active = false;
             },
             _showPeptideUpload: function(){
@@ -585,7 +637,14 @@
             _showProteinDigester: function(){
                 this.$$('#peptideInput').setAttribute('disabled', true);
                 this.$.digester.removeAttribute('disabled');
-            }
+            },
+            _showGlycanUpload: function(){
+                this.glycans = Array();
+                this.$$('#glycanInput').removeAttribute('disabled');
+            },
+            _hideGlycanUpload: function(){
+                this.$$('#glycanInput').setAttribute('disabled', true);
+            },
         });
     </script>
 </dom-module>
