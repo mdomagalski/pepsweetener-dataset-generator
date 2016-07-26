@@ -68,23 +68,23 @@
             };
 
             --paper-card-header:{
-                background-color:var(--paper-indigo-400);
                 margin: 10px;
             };
-            --paper-card-header-color: white;
+            --paper-card-header-color: var(--paper-indigo-500);
 
             --paper-card-header-text: {
                 font-size: 20px;
-                padding: 10px;
+                padding: 15px 0 0 5px;
             };
         }
 
         .card-content {
             margin: 10px;
+            border: 1px solid var(--paper-indigo-500);
         }
 
         .card-actions {
-            margin: 5px 16px;
+            margin: 20px 0 0 0;
             padding: 0;
         }
 
@@ -239,14 +239,14 @@
                                 - Lines starting with "#" character are ignored
                             </paper-tooltip>
                         </div>
-                    </div>
-                    <div class="card-actions">
-                        <div class="layout horizontal wrap section">
-                            <div class="fileInput layout vertical widthInput">
-                                <paper-checkbox id="filterNSites" checked={{nSitesFilter}}>Filter peptides containing N-glycosite sequence motif</paper-checkbox>
-                                <paper-checkbox id="filterOSites" checked={{oSitesFilter}}>Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
+                        <div class="card-actions">
+                            <div class="layout horizontal wrap">
+                                <div class="fileInput layout vertical widthInput">
+                                    <paper-checkbox id="filterNSites" checked={{nSitesFilter}}>Filter peptides containing N-glycosite sequence motif</paper-checkbox>
+                                    <paper-checkbox id="filterOSites" checked={{oSitesFilter}}>Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
+                                </div>
+                                <paper-dialog id="dialog"></paper-dialog>
                             </div>
-                            <paper-dialog id="dialog"></paper-dialog>
                         </div>
                     </div>
                 </paper-card>
@@ -274,15 +274,10 @@
                             </paper-tooltip>
                         </div>
                     </div>
-                    <div class="card-actions">
-                        <div class="layout horizontal wrap section">
-
-                        </div>
-                    </div>
                 </paper-card>
                 <paper-card heading="Fixed modifications">
                     <div class="card-content">
-                        <div class="modificationsBox layout horizontal wrap section">
+                        <div class="modificationsBox layout horizontal wrap">
                             <div class="modificationCheckbox layout vertical">
                                 <paper-checkbox id="acetylationK" checked={{acetylationK}}> Acetylation (K)</paper-checkbox>
                                 <paper-checkbox id="acetylationNterm" checked={{acetylationNterm}}> Acetylation (N-term)</paper-checkbox>
@@ -447,11 +442,11 @@
                         for (var idx in this.peptides){
                             var NtermMod = this.peptides[idx].modifAt(-1);
                             /*if (NtermMod){
-                                var array = $.map(NtermMod, function(value, index) {
-                                    return [value];
-                                });
-                                console.log(array.id);
-                            }*/
+                             var array = $.map(NtermMod, function(value, index) {
+                             return [value];
+                             });
+                             console.log(array.id);
+                             }*/
                             if(!NtermMod){// || (NtermMod && !NtermMod.contains(this.fixedModifications[mod][1]))){
                                 this.peptides[idx].addModification(-1, modifications.get(this.fixedModifications[mod][1]));
                             }
