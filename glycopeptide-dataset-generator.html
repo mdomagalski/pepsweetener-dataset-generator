@@ -213,7 +213,6 @@
     <template>
         <iron-ajax
             id="unicarbAjax"
-            auto
             handle-as="text"
             on-response="loadUnicarbKbComposition">
         </iron-ajax>
@@ -484,14 +483,14 @@
                 this._loadUnicarbNGlycans();
             },
             _loadUnicarbNGlycans: function(){
-                this._hideGlycanUpload();
-                this.glycans=Array();
                 this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
+                this.$.unicarbAjax.generateRequest();
+                this._hideGlycanUpload();
             },
             _loadUnicarbAll: function(){
-                this._hideGlycanUpload();
-                this.glycans=Array();
                 this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-all.txt');
+                this.$.unicarbAjax.generateRequest();
+                this._hideGlycanUpload();
             },
             _validateGlycans: function(){
                 if(this.glycans.length==0){
@@ -634,7 +633,7 @@
                 this.$.digester.removeAttribute('disabled');
             },
             _showGlycanUpload: function(){
-                this.glycans = Array();
+                this.glycans = [];
                 this.$$('#glycanInput').removeAttribute('disabled');
             },
             _hideGlycanUpload: function(){
