@@ -393,7 +393,10 @@
                     type: Boolean,
                     value: false
                 },
-                datasetLength: Number
+                datasetLength: {
+                    type: Number,
+                    notify: true
+                }
             },
             addFixedModifications: function() {
                 var modifications = fishtones.dry.ResidueModificationDictionary;
