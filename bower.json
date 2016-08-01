@@ -27,6 +27,7 @@
     "protein-digester": "https://mdomagalski@bitbucket.org/sib-pig/protein-digester.git",
     "paper-radio-button": "PolymerElements/paper-radio-button#^1.2.1",
     "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.0",
-    "paper-card": "PolymerElements/paper-card#^1.1.1"
+    "paper-card": "PolymerElements/paper-card#^1.1.1",
+    "iron-localstorage": "PolymerElements/iron-localstorage#^1.0.6"
   }
 }

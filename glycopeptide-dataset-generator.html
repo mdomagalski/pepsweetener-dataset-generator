@@ -1,5 +1,10 @@
 <!-- Imports polymer -->
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../iron-localstorage/iron-localstorage.html">
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../paper-input/paper-input-container.html">
 <link rel="import" href="../paper-input/paper-input.html">
@@ -11,10 +16,6 @@
 <link rel="import" href="../paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../iron-ajax/iron-ajax.html">
-<link rel="import" href="../iron-icons/iron-icons.html">
-<link rel="import" href="../iron-icon/iron-icon.html">
-<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../peptide-parser/peptide-parser.html">
 <link rel="import" href="../protein-digester/protein-digester.html">
 
@@ -221,10 +222,13 @@
                 <peptide-parser id="peptideParser"></peptide-parser>
                 <paper-card heading="Peptide input ({{peptides.length}})" invalid>
                     <div id="peptideInputContainer" class="card-content">
-                        <paper-radio-group selected="digest">
+                        <paper-radio-group selected="{{peptideInputCache}}">
                             <paper-radio-button name="digest" on-change="_showProteinDigester">Protein digestion</paper-radio-button>
                             <paper-radio-button name="upload" on-change="_showPeptideUpload">List of peptides</paper-radio-button>
                         </paper-radio-group>
+                        <iron-localstorage name="peptideInputCache" value="{{peptideInputCache}}"
+                                           on-iron-localstorage-load-empty="_initializeDefaultPeptideInput">
+                        </iron-localstorage>
                         <div class="layout horizontal wrap">
                             <protein-digester id="digester" peptides={{peptides}}></protein-digester>
                         </div>
@@ -242,7 +246,9 @@
                             <div class="layout horizontal wrap">
                                 <div class="fileInput layout vertical widthInput">
                                     <paper-checkbox id="filterNSites" checked={{nSitesFilter}}>Filter peptides containing N-glycosite sequence motif</paper-checkbox>
+                                    <iron-localstorage name="nSitesFilterCache" value="{{nSitesFilter}}"></iron-localstorage>
                                     <paper-checkbox id="filterOSites" checked={{oSitesFilter}}>Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
+                                    <iron-localstorage name="oSitesFilterCache" value="{{oSitesFilter}}"></iron-localstorage>
                                 </div>
                                 <paper-dialog id="dialog"></paper-dialog>
                             </div>
@@ -251,11 +257,15 @@
                 </paper-card>
                 <paper-card heading="Glycan input ({{glycans.length}})">
                     <div id="glycanInputContainer" class="card-content">
-                        <paper-radio-group id="glycanChoice" selected="unicarbKBNGlycans">
+                        <paper-radio-group id="glycanChoice" selected="{{glycanInputCache}}">
                             <paper-radio-button on-change="_loadUnicarbNGlycans" name="unicarbKBNGlycans">Use UniCarbKB N-glycans</paper-radio-button>
                             <paper-radio-button on-change="_loadUnicarbAll" name="unicarbKBAll">Use UniCarbKB</paper-radio-button>
                             <paper-radio-button name="upload" on-change="_showGlycanUpload">List of glycans</paper-radio-button>
                         </paper-radio-group>
+
+                        <iron-localstorage name="glycanInputCache" value="{{glycanInputCache}}"
+                                           on-iron-localstorage-load-empty="_initializeDefaultGlycanInput">
+                        </iron-localstorage>
                         <div class="fileInput layout vertical widthInput">
                             <paper-input id="glycanInput" label="List of glycans" type="file" label="List of glycans" error-message="Please check the glycan list!" on-change="loadGlycanFile" disabled></paper-input>
                             <paper-tooltip for="glycanInput">
@@ -279,26 +289,37 @@
                         <div class="modificationsBox layout horizontal wrap">
                             <div class="modificationCheckbox layout vertical">
                                 <paper-checkbox id="acetylationK" checked={{acetylationK}}> Acetylation (K)</paper-checkbox>
+                                <iron-localstorage name="acetylationK" value="{{acetylationK}}"></iron-localstorage>
                                 <paper-checkbox id="acetylationNterm" checked={{acetylationNterm}}> Acetylation (N-term)</paper-checkbox>
+                                <iron-localstorage name="acetylationNterm" value="{{acetylationNterm}}"></iron-localstorage>
                             </div>
                             <div class="modificationCheckbox layout vertical">
                                 <paper-checkbox id="amidatedCterm" checked={{amidatedCterm}}> Amidated (C-term)</paper-checkbox>
+                                <iron-localstorage name="amidatedCterm" value="{{amidatedCterm}}"></iron-localstorage>
                                 <paper-checkbox id="carbamidomethylationC" checked={{carbamidomethylationC}}> Carbamidomethylation (C)</paper-checkbox>
+                                <iron-localstorage name="carbamidomethylationC" value="{{carbamidomethylationC}}"></iron-localstorage>
                             </div>
                             <div class="modificationCheckbox layout vertical">
                                 <paper-checkbox id="carbamylK" checked={{carbamylK}}> Carbamyl (K)</paper-checkbox>
+                                <iron-localstorage name="carbamylK" value="{{carbamylK}}"></iron-localstorage>
                                 <paper-checkbox id="deamidatedNQ" checked={{deamidatedNQ}}> Deaminated (NQ)</paper-checkbox>
+                                <iron-localstorage name="deamidatedNQ" value="{{deamidatedNQ}}"></iron-localstorage>
                             </div>
                             <div class="modificationCheckbox layout vertical">
-                                <paper-checkbox id="tmt2plexK" checked={{TMT2plexK}}> TMT2plex(K)</paper-checkbox>
-                                <paper-checkbox id="tmt2plexNterm" checked={{TMT2plexNterm}}> TMT2plex (N-term)</paper-checkbox>
+                                <paper-checkbox id="TMT2plexK" checked={{TMT2plexK}}> TMT2plex(K)</paper-checkbox>
+                                <iron-localstorage name="TMT2plexK" value="{{TMT2plexK}}"></iron-localstorage>
+                                <paper-checkbox id="TMT2plexNterm" checked={{TMT2plexNterm}}> TMT2plex (N-term)</paper-checkbox>
+                                <iron-localstorage name="TMT2plexNterm" value="{{TMT2plexNterm}}"></iron-localstorage>
                             </div>
                             <div class="modificationCheckbox layout vertical">
-                                <paper-checkbox id="tmt6plexK" checked={{TMT6plexK}}> TMT6plex (K)</paper-checkbox>
-                                <paper-checkbox id="tmt6plexNterm" checked={{TMT6plexNterm}}> TMT6plex (N-term)</paper-checkbox>
+                                <paper-checkbox id="TMT6plexK" checked={{TMT6plexK}}> TMT6plex (K)</paper-checkbox>
+                                <iron-localstorage name="TMT6plexK" value="{{TMT6plexK}}"></iron-localstorage>
+                                <paper-checkbox id="TMT6plexNterm" checked={{TMT6plexNterm}}> TMT6plex (N-term)</paper-checkbox>
+                                <iron-localstorage name="TMT6plexNterm" value="{{TMT6plexNterm}}"></iron-localstorage>
                             </div>
                             <div class="modificationCheckbox layout vertical">
                                 <paper-checkbox id="oxidationM" checked={{oxidationM}}> Oxidation (M)</paper-checkbox>
+                                <iron-localstorage name="oxidationM" value="{{oxidationM}}"></iron-localstorage>
                             </div>
                         </div>
                     </div>
@@ -422,16 +443,16 @@
                 if (this.oxidationM){
                     this.fixedModifications.push(['M','Oxidation']);
                 }
-                if (this.tmt2plexK){
+                if (this.TMT2plexK){
                     this.fixedModifications.push(['K','TMT2plex']);
                 }
-                if (this.tmt2plexNterm){
+                if (this.TMT2plexNterm){
                     this.fixedModifications.push(['Nterm','TMT2plex']);
                 }
-                if (this.tmt6plexK){
+                if (this.TMT6plexK){
                     this.fixedModifications.push(['K','TMT6plex']);
                 }
-                if (this.tmt6plexNterm){
+                if (this.TMT6plexNterm){
                     this.fixedModifications.push(['Nterm','TMT6plex']);
                 }
                 var richSeqShortcuter = new  fishtones.dry.RichSequenceShortcuter();
@@ -483,7 +504,18 @@
                     alert('The File APIs are not fully supported in this browser.');
                 }
                 this.massBuilder = fishtones.dry.MassBuilder;
-                this._loadUnicarbNGlycans();
+                if(this.glycanInputCache=="unicarbKBNGlycans"){
+                    this._loadUnicarbNGlycans();
+                }else if(this.glycanInputCache=="unicarbKBAll"){
+                    this._loadUnicarbAll();
+                }else{
+                    this._showGlycanUpload();
+                }
+                if(this.peptideInputCache=="digest"){
+                    this._showProteinDigester();
+                }else if(this.peptideInputCache=="upload"){
+                    this._showPeptideUpload();
+                }
             },
             _loadUnicarbNGlycans: function(){
                 this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
@@ -642,6 +674,12 @@
             _hideGlycanUpload: function(){
                 this.$$('#glycanInput').setAttribute('disabled', true);
             },
+            _initializeDefaultGlycanInput: function(){
+                return this.set('glycanInputCache', 'unicarbKBNGlycans');
+            },
+            _initializeDefaultPeptideInput: function(){
+                return this.set('peptideInputCache', 'digest');
+            }
         });
     </script>
 </dom-module>
