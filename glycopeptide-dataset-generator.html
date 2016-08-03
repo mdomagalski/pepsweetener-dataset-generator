@@ -547,7 +547,8 @@
                         var result = e.target.result;
                         var commentLines = result.match(/#.+/g);
                         if (commentLines){
-                            for (line of commentLines){
+                            for (var i in commentLines){
+                                var line = commentLines[i];
                                 result = result.replace(line, "");
                             }
                         }
@@ -582,7 +583,8 @@
                         var result = e.target.result;
                         var commentLines = result.match(/#.+/g);
                         if (commentLines){
-                            for (line of commentLines){
+                            for (var i in commentLines){
+                                var line = commentLines[i];
                                 result = result.replace(line, "");
                             }
                         }
@@ -632,22 +634,25 @@
                 }
             },
             combineGlycansAndPeptides: function() {
-                glycopeptides = {};
-                glycanMasses = {};
-                for (glycan of this.glycans){
+                var glycopeptides = {};
+                var glycanMasses = {};
+                for (var idx in this.glycans){
+                    var glycan = this.glycans[idx];
                     glycanMasses[glycan] = getGlycanMolecularMass(glycan);
                 }
                 this.datasetLength =0;
-                for(peptide of this.peptides){
+                for(var idx in this.peptides){
+                    var peptide = this.peptides[idx];
                     if(((!this.nSitesFilter && !this.oSitesFilter)
                         || this.nSitesFilter && peptide.toString().match(/N[^P][ST]/))
                         || (this.oSitesFilter && peptide.toString().match(/[ST]/))
                         || parseFloat(peptide)) {
-                        peptideMass = this.massBuilder.computeMassRichSequence(peptide);
-                        for (glycan of this.glycans){
-                            glycanMass = glycanMasses[glycan];
-                            glycopeptideMass = peptideMass+glycanMass;
-                            bucket = Math.round(glycopeptideMass*10);
+                        var peptideMass = this.massBuilder.computeMassRichSequence(peptide);
+                        for (var i in this.glycans){
+                            var glycan = this.glycans[i];
+                            var glycanMass = glycanMasses[glycan];
+                            var glycopeptideMass = peptideMass+glycanMass;
+                            var bucket = Math.round(glycopeptideMass*10);
                             if(!glycopeptides[bucket]){
                                 glycopeptides[bucket] = [];
                             }
