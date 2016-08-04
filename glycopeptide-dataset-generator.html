@@ -98,11 +98,11 @@
         }
 
         paper-spinner {
-            top: 70px;
+            top: 280px;
             left: 43.5%;
-            height: 80px;
-            width: 80px;
-            /*position: absolute;*/
+            height: 120px;
+            width: 120px;
+            position: absolute;
             z-index: 10;
         }
 
@@ -222,19 +222,19 @@
                 <peptide-parser id="peptideParser"></peptide-parser>
                 <paper-card heading="Peptide input ({{peptides.length}})" invalid>
                     <div id="peptideInputContainer" class="card-content">
-                        <paper-radio-group selected="{{peptideInputCache}}">
+                        <paper-radio-group selected="{{peptideInput}}">
                             <paper-radio-button name="digest" on-change="_showProteinDigester">Protein digestion</paper-radio-button>
                             <paper-radio-button name="upload" on-change="_showPeptideUpload">List of peptides</paper-radio-button>
                         </paper-radio-group>
-                        <iron-localstorage name="peptideInputCache" value="{{peptideInputCache}}"
+                        <iron-localstorage id="peptideInput" name="peptideInput" value="{{peptideInput}}"
                                            on-iron-localstorage-load-empty="_initializeDefaultPeptideInput">
                         </iron-localstorage>
                         <div class="layout horizontal wrap">
-                            <protein-digester id="digester" peptides={{peptides}}></protein-digester>
+                            <protein-digester id="digester" peptides={{peptides}} sites="{{sites}}"></protein-digester>
                         </div>
                         <div class="layout horizontal wrap">
-                            <paper-input id="peptideInput" type=file label="List of peptides" error-message="Please check the peptide list!" on-change="loadPeptideFile" disabled></paper-input>
-                            <paper-tooltip for="peptideInput">
+                            <paper-input id="peptideFile" type=file label="List of peptides" error-message="Please check the peptide list!" on-change="loadPeptideFile" disabled></paper-input>
+                            <paper-tooltip for="peptideFile">
                                 <b>Peptide input Tips:</b></br></br>
                                 - Only plain text files are supported</br>
                                 - Peptides must be separated by a comma</br>
@@ -360,11 +360,17 @@
                 },
                 nSitesFilter: {
                     type: Boolean,
-                    value: false
+                    value: false,
+                    observer: '_filterNsites'
                 },
                 oSitesFilter: {
                     type: Boolean,
-                    value: false
+                    value: false,
+                    observer: '_filterOsites'
+                },
+                sites: {
+                    type: Array,
+                    value: []
                 },
                 fixedModifications: {
                     type: Array,
@@ -511,11 +517,13 @@
                 }else{
                     this._showGlycanUpload();
                 }
-                if(this.peptideInputCache=="digest"){
+                if(this.peptideInput=="digest"){
                     this._showProteinDigester();
-                }else if(this.peptideInputCache=="upload"){
+                }else if(this.peptideInput=="upload"){
                     this._showPeptideUpload();
                 }
+                this._filterNsites();
+                this._filterOsites();
             },
             _loadUnicarbNGlycans: function(){
                 this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
@@ -565,12 +573,12 @@
             },
             _validatePeptides: function () {
                 if (this.peptides.length==0){
-                    this.$.peptideInput.setAttribute('invalid', true);
+                    this.$.peptideFile.setAttribute('invalid', true);
                     this.$.peptideInputContainer.setAttribute('invalid', true);
                     this.$.spinner.active = false;
                     return false;
                 }
-                this.$.peptideInput.removeAttribute('invalid');
+                this.$.peptideFile.removeAttribute('invalid');
                 this.$.peptideInputContainer.removeAttribute('invalid');
                 return true;
             },
@@ -624,14 +632,16 @@
             },
             generate: function() {
                 this.$.spinner.active = true;
-                if(typeof this.peptides[0]=== 'string'){
-                    this.$.peptideParser.peptideStrings = this.peptides;
-                    this.peptides = this.$.peptideParser.peptideObjects;
-                }
-                if(this._validatePeptides() && this._validateGlycans() && this._checkCombinationLimit()) {
-                    this.addFixedModifications();
-                    this.combineGlycansAndPeptides();
-                }
+                this.async(function() {
+                    if(typeof this.peptides[0]=== 'string'){
+                        this.$.peptideParser.peptideStrings = this.peptides;
+                        this.peptides = this.$.peptideParser.peptideObjects;
+                    }
+                    if(this._validatePeptides() && this._validateGlycans() && this._checkCombinationLimit()) {
+                        this.addFixedModifications();
+                        this.combineGlycansAndPeptides();
+                    }
+                }, 10);
             },
             combineGlycansAndPeptides: function() {
                 var glycopeptides = {};
@@ -643,33 +653,54 @@
                 this.datasetLength =0;
                 for(var idx in this.peptides){
                     var peptide = this.peptides[idx];
-                    if(((!this.nSitesFilter && !this.oSitesFilter)
-                        || this.nSitesFilter && peptide.toString().match(/N[^P][ST]/))
-                        || (this.oSitesFilter && peptide.toString().match(/[ST]/))
-                        || parseFloat(peptide)) {
-                        var peptideMass = this.massBuilder.computeMassRichSequence(peptide);
-                        for (var i in this.glycans){
-                            var glycan = this.glycans[i];
-                            var glycanMass = glycanMasses[glycan];
-                            var glycopeptideMass = peptideMass+glycanMass;
-                            var bucket = Math.round(glycopeptideMass*10);
-                            if(!glycopeptides[bucket]){
-                                glycopeptides[bucket] = [];
-                            }
-                            glycopeptides[bucket].push(new Array(peptide, glycan, glycopeptideMass));
-                            this.datasetLength+=1;
+                    var peptideMass = this.massBuilder.computeMassRichSequence(peptide);
+                    for (var i in this.glycans){
+                        var glycan = this.glycans[i];
+                        var glycanMass = glycanMasses[glycan];
+                        var glycopeptideMass = peptideMass+glycanMass;
+                        var bucket = Math.round(glycopeptideMass*10);
+                        if(!glycopeptides[bucket]){
+                            glycopeptides[bucket] = [];
                         }
+                        glycopeptides[bucket].push(new Array(peptide.toString(), glycan, glycopeptideMass));
+                        this.datasetLength+=1;
                     }
                 }
                 this.glycopeptides = glycopeptides;
                 this.$.spinner.active = false;
             },
+            _filterNsites: function() {
+                var nSiteRegExp = /N[^P][ST]/g;
+                if(this.peptideInput=='digest'){
+                    var sequence = this.$.digester.proteinSequence;
+                    this.sites = [];
+                    if(this.nSitesFilter){
+                        this.oSitesFilter = false;
+                        while((match = nSiteRegExp.exec(sequence))!=null){
+                            this.sites.push(match.index);
+                        }
+                    }
+                }
+            },
+            _filterOsites: function() {
+                var oSiteRegExp = /[ST]/g;
+                if(this.peptideInput=='digest'){
+                    var sequence = this.$.digester.proteinSequence;
+                    this.sites = [];
+                    if(this.oSitesFilter){
+                        this.nSitesFilter = false;
+                        while((match = oSiteRegExp.exec(sequence))!=null){
+                            this.sites.push(match.index);
+                        }
+                    }
+                }
+            },
             _showPeptideUpload: function(){
                 this.$.digester.setAttribute('disabled', true);
-                this.$$('#peptideInput').removeAttribute('disabled');
+                this.$$('#peptideFile').removeAttribute('disabled');
             },
             _showProteinDigester: function(){
-                this.$$('#peptideInput').setAttribute('disabled', true);
+                this.$$('#peptideFile').setAttribute('disabled', true);
                 this.$.digester.removeAttribute('disabled');
             },
             _showGlycanUpload: function(){
@@ -680,10 +711,10 @@
                 this.$$('#glycanInput').setAttribute('disabled', true);
             },
             _initializeDefaultGlycanInput: function(){
-                return this.set('glycanInputCache', 'unicarbKBNGlycans');
+                return this.set('glycanInput', 'unicarbKBNGlycans');
             },
             _initializeDefaultPeptideInput: function(){
-                return this.set('peptideInputCache', 'digest');
+                return this.set('peptideInput', 'digest');
             }
         });
     </script>
