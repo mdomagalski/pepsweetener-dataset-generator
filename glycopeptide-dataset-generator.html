@@ -230,7 +230,7 @@
                                            on-iron-localstorage-load-empty="_initializeDefaultPeptideInput">
                         </iron-localstorage>
                         <div class="layout horizontal wrap">
-                            <protein-digester id="digester" peptides={{peptides}} sites="{{sites}}"></protein-digester>
+                            <protein-digester id="digester" protein-sequence="{{proteinSequence}}" peptides="{{peptides}}" sites="{{sites}}"></protein-digester>
                         </div>
                         <div class="layout horizontal wrap">
                             <paper-input id="peptideFile" type=file label="List of peptides" error-message="Please check the peptide list!" on-change="loadPeptideFile" disabled></paper-input>
@@ -245,7 +245,7 @@
                         <div class="card-actions">
                             <div class="layout horizontal wrap">
                                 <div class="fileInput layout vertical widthInput">
-                                    <paper-checkbox id="filterNSites" checked={{nSitesFilter}}>Filter peptides containing N-glycosite sequence motif</paper-checkbox>
+                                    <paper-checkbox id="filterNSites" checked="{{nSitesFilter}}">Filter peptides containing N-glycosite sequence motif</paper-checkbox>
                                     <iron-localstorage name="nSitesFilterCache" value="{{nSitesFilter}}"></iron-localstorage>
                                     <paper-checkbox id="filterOSites" checked={{oSitesFilter}}>Filter peptides containing at least one Ser/Thr residue</paper-checkbox>
                                     <iron-localstorage name="oSitesFilterCache" value="{{oSitesFilter}}"></iron-localstorage>
@@ -348,6 +348,10 @@
                 combinationLimit: {
                     type: Number,
                     value: 10000000
+                },
+                proteinSequence: {
+                    type: String,
+                    observer: '_updateSites'
                 },
                 glycansUnicarb: {
                     type: Array,
@@ -510,6 +514,7 @@
                     alert('The File APIs are not fully supported in this browser.');
                 }
                 this.massBuilder = fishtones.dry.MassBuilder;
+
                 if(this.glycanInputCache=="unicarbKBNGlycans"){
                     this._loadUnicarbNGlycans();
                 }else if(this.glycanInputCache=="unicarbKBAll"){
@@ -517,13 +522,12 @@
                 }else{
                     this._showGlycanUpload();
                 }
+
                 if(this.peptideInput=="digest"){
                     this._showProteinDigester();
                 }else if(this.peptideInput=="upload"){
                     this._showPeptideUpload();
                 }
-                if(this.nSitesFilter){this._filterNsites();}
-                if(this.oSitesFilter){this._filterOsites();}
             },
             _loadUnicarbNGlycans: function(){
                 this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
@@ -583,7 +587,7 @@
                 return true;
             },
             loadPeptideFile: function(evt){
-                var file = evt.target.files[0];
+                if(evt){this.peptideFile = evt.target.files[0];}
                 var reader = new FileReader();
                 var data=this;
                 reader.onload = (function(theFile) {
@@ -604,10 +608,11 @@
                         });
                         data.$.peptideParser.peptideStrings = nonRedundantPeptideList;
                         data.peptides = data.$.peptideParser.peptideObjects;
+                        data._updateSites();
                         data._validatePeptides();
                     };
-                })(file);
-                reader.readAsText(file);
+                })(this.peptideFile);
+                reader.readAsText(this.peptideFile);
             },
             loadUnicarbKbComposition: function(request) {
                 var glycanList = request.detail.response.split(",").filter(String);
@@ -669,41 +674,84 @@
                 this.glycopeptides = glycopeptides;
                 this.$.spinner.active = false;
             },
+            _updateSites: function(){
+                if(this.nSitesFilter){this._filterNsites();}
+                if(this.oSitesFilter){this._filterOsites();}
+            },
             _filterNsites: function() {
-                var nSiteRegExp = /N[^P][ST]/g;
-                if(this.peptideInput=='digest'){
-                    var sequence = this.$.digester.proteinSequence;
-                    var sites = [];
-                    if(this.nSitesFilter){
-                        this.oSitesFilter = false;
-                        while((match = nSiteRegExp.exec(sequence))!=null){
-                            sites.push(match.index);
+                if(this.peptideInput=='digest') {
+                    this._filterNsitesAndDigestProtein();
+                }else if(this.peptideInput=='upload'){
+                    this._filterNSitesFromPeptideList();
+                }
+            },
+            _filterNsitesAndDigestProtein: function(){
+                var sites = [];
+                if(this.nSitesFilter){
+                    var nSitesRegExp = /N[^P][ST]/g;
+                    this.oSitesFilter = false;
+                    while((match = nSitesRegExp.exec(this.proteinSequence))!=null){
+                        sites.push(match.index);
+                    }
+                }
+                this.sites = sites;
+            },
+            _filterNSitesFromPeptideList: function() {
+                if(this.nSitesFilter){
+                    var nSiteRegExp = /N[^P][ST]/;
+                    this.oSitesFilter = false;
+                    var peptides = [];
+                    for(var i in this.peptides){
+                        if(nSiteRegExp.test(this.peptides[i].toString())){
+                            peptides.push(this.peptides[i]);
                         }
                     }
-                    this.sites = sites;
+                    this.peptides=peptides;
+                }else {
+                    if(this.peptideFile){this.loadPeptideFile();}
                 }
             },
             _filterOsites: function() {
-                var oSiteRegExp = /[ST]/g;
-                if(this.peptideInput=='digest'){
-                    var uniprotId = this.$.digester.uniprotId;
-                    var sequence = this.$.digester.proteinSequence;
-                    var sites = [];
-                    if(this.oSitesFilter){
-                        this.nSitesFilter = false;
-                        while((match = oSiteRegExp.exec(sequence))!=null){
-                            sites.push(match.index);
+                if(this.peptideInput=='digest') {
+                    this._filterOsitesAndDigestProtein();
+                }else if(this.peptideInput=='upload'){
+                    this._filterOSitesFromPeptideList();
+                }
+            },
+            _filterOsitesAndDigestProtein: function() {
+                var sites = [];
+                if(this.oSitesFilter){
+                    var oSitesRegExp = /[ST]/g;
+                    this.nSitesFilter = false;
+                    while((match = oSitesRegExp.exec(this.proteinSequence))!=null){
+                        sites.push(match.index);
+                    }
+                }
+                this.sites = sites;
+            },
+            _filterOSitesFromPeptideList: function() {
+                if(this.oSitesFilter){
+                    var oSiteRegExp = /[ST]/;
+                    this.nSitesFilter = false;
+                    var peptides = [];
+                    for(var i in this.peptides){
+                        if(oSiteRegExp.test(this.peptides[i].toString())==true){
+                            peptides.push(this.peptides[i].toString());
                         }
                     }
-                    this.sites = sites;
+                    this.peptides=peptides;
+                }else {
+                    if(this.peptideFile){this.loadPeptideFile();}
                 }
             },
             _showPeptideUpload: function(){
                 this.$.digester.setAttribute('disabled', true);
+                this.peptides = [];
                 this.$$('#peptideFile').removeAttribute('disabled');
             },
             _showProteinDigester: function(){
                 this.$$('#peptideFile').setAttribute('disabled', true);
+                this.peptides = [];
                 this.$.digester.removeAttribute('disabled');
             },
             _showGlycanUpload: function(){
