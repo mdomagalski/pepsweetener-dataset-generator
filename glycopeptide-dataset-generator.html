@@ -522,8 +522,8 @@
                 }else if(this.peptideInput=="upload"){
                     this._showPeptideUpload();
                 }
-                this._filterNsites();
-                this._filterOsites();
+                if(this.nSitesFilter){this._filterNsites();}
+                if(this.oSitesFilter){this._filterOsites();}
             },
             _loadUnicarbNGlycans: function(){
                 this.$.unicarbAjax.url = this.resolveUrl('unicarbKB/compositions-nglycans.txt');
@@ -673,26 +673,29 @@
                 var nSiteRegExp = /N[^P][ST]/g;
                 if(this.peptideInput=='digest'){
                     var sequence = this.$.digester.proteinSequence;
-                    this.sites = [];
+                    var sites = [];
                     if(this.nSitesFilter){
                         this.oSitesFilter = false;
                         while((match = nSiteRegExp.exec(sequence))!=null){
-                            this.sites.push(match.index);
+                            sites.push(match.index);
                         }
                     }
+                    this.sites = sites;
                 }
             },
             _filterOsites: function() {
                 var oSiteRegExp = /[ST]/g;
                 if(this.peptideInput=='digest'){
+                    var uniprotId = this.$.digester.uniprotId;
                     var sequence = this.$.digester.proteinSequence;
-                    this.sites = [];
+                    var sites = [];
                     if(this.oSitesFilter){
                         this.nSitesFilter = false;
                         while((match = oSiteRegExp.exec(sequence))!=null){
-                            this.sites.push(match.index);
+                            sites.push(match.index);
                         }
                     }
+                    this.sites = sites;
                 }
             },
             _showPeptideUpload: function(){
