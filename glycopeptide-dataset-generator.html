@@ -472,10 +472,10 @@
                     this.fixedModifications.push(['Nterm','TMT6plex']);
                 }
                 var richSeqShortcuter = new  fishtones.dry.RichSequenceShortcuter();
-                richSeqShortcuter.defaults.modif2short['Carbamyl'] = 'Ca';
+                /*richSeqShortcuter.defaults.modif2short['Carbamyl'] = 'Ca';
                 richSeqShortcuter.set('Carbamyl', 'Ca');
                 richSeqShortcuter.defaults.modif2short['Oxidation'] = 'Ox';
-                richSeqShortcuter.set('Oxidation', 'Ox');
+                richSeqShortcuter.set('Oxidation', 'Ox');*/
                 for (var mod in this.fixedModifications){
                     if (this.fixedModifications[mod][0]=='Nterm'){
                         for (var idx in this.peptides){
