@@ -257,13 +257,13 @@
                 </paper-card>
                 <paper-card heading="Glycan input ({{glycans.length}})">
                     <div id="glycanInputContainer" class="card-content">
-                        <paper-radio-group id="glycanChoice" selected="{{glycanInputCache}}">
+                        <paper-radio-group id="glycanChoice" selected="{{glycanInput}}">
                             <paper-radio-button on-change="_loadUnicarbNGlycans" name="unicarbKBNGlycans">Use UniCarbKB N-glycans</paper-radio-button>
                             <paper-radio-button on-change="_loadUnicarbAll" name="unicarbKBAll">Use UniCarbKB</paper-radio-button>
                             <paper-radio-button name="upload" on-change="_showGlycanUpload">List of glycans</paper-radio-button>
                         </paper-radio-group>
 
-                        <iron-localstorage name="glycanInputCache" value="{{glycanInputCache}}"
+                        <iron-localstorage name="glycanInput" value="{{glycanInput}}"
                                            on-iron-localstorage-load-empty="_initializeDefaultGlycanInput">
                         </iron-localstorage>
                         <div class="fileInput layout vertical widthInput">
@@ -352,6 +352,12 @@
                 proteinSequence: {
                     type: String,
                     observer: '_updateSites'
+                },
+                peptideInput: {
+                    observer: '_updatePeptideInput'
+                },
+                glycanInput: {
+                    observer: '_updateGlycanInput'
                 },
                 glycansUnicarb: {
                     type: Array,
@@ -514,19 +520,14 @@
                     alert('The File APIs are not fully supported in this browser.');
                 }
                 this.massBuilder = fishtones.dry.MassBuilder;
-
-                if(this.glycanInputCache=="unicarbKBNGlycans"){
+            },
+            _updateGlycanInput: function(){
+                if(this.glycanInput=="unicarbKBNGlycans"){
                     this._loadUnicarbNGlycans();
-                }else if(this.glycanInputCache=="unicarbKBAll"){
+                }else if(this.glycanInput=="unicarbKBAll"){
                     this._loadUnicarbAll();
-                }else{
+                }else if(this.$.glycanInput=="upload"){
                     this._showGlycanUpload();
-                }
-
-                if(this.peptideInput=="digest"){
-                    this._showProteinDigester();
-                }else if(this.peptideInput=="upload"){
-                    this._showPeptideUpload();
                 }
             },
             _loadUnicarbNGlycans: function(){
@@ -574,6 +575,16 @@
                     };
                 })(file);
                 reader.readAsText(file);
+            },
+            _updatePeptideInput: function(){
+                if(this.peptideInput=="digest"){
+                    this._showProteinDigester();
+                    if(this.$.digester.peptides.length==0){
+                        this.$.digester.digest();
+                    }
+                }else if(this.peptideInput=="upload"){
+                    this._showPeptideUpload();
+                }
             },
             _validatePeptides: function () {
                 if (this.peptides.length==0){
