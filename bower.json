@@ -1,9 +1,9 @@
 {
-  "name": "glycopeptide-dataset-generator",
+  "name": "pepsweetener-dataset-generator",
   "version": "0.0.0",
-  "description": "Generate your own glycopeptide matrix",
+  "description": "Generate your own theoretical glycopeptide dataset",
   "license": "MIT",
-  "main": "glycopeptide-dataset-generator.html",
+  "main": "pepsweetener-dataset-generator.html",
   "keywords": [
     "polymer",
     "web-components"
@@ -14,20 +14,20 @@
   ],
   "dependencies": {
     "polymer": "Polymer#^1.3.1",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
+    "iron-icons": "PolymerElements/iron-icons#^1.1.3",
+    "iron-localstorage": "PolymerElements/iron-localstorage#^1.0.6"
     "paper-input": "PolymerElements/paper-input#^1.1.10",
     "paper-button": "PolymerElements/paper-button#^1.0.11",
     "paper-spinner": "PolymerElements/paper-spinner#^1.1.1",
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.4",
     "paper-checkbox": "PolymerElements/paper-checkbox#^1.1.3",
-    "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
-    "fishtones-js": "fishtones#*",
     "paper-tooltip": "PolymerElements/paper-tooltip#^1.1.2",
-    "iron-icons": "PolymerElements/iron-icons#^1.1.3",
-    "peptide-parser": "https://mdomagalski@bitbucket.org/sib-pig/peptide-parser.git",
-    "protein-digester": "https://mdomagalski@bitbucket.org/sib-pig/protein-digester.git",
     "paper-radio-button": "PolymerElements/paper-radio-button#^1.2.1",
     "paper-radio-group": "PolymerElements/paper-radio-group#^1.2.0",
     "paper-card": "PolymerElements/paper-card#^1.1.1",
-    "iron-localstorage": "PolymerElements/iron-localstorage#^1.0.6"
+    "fishtones-js": "fishtones#*",
+    "peptide-parser": "https://mdomagalski@bitbucket.org/sib-pig/peptide-parser.git",
+    "protein-digester": "https://mdomagalski@bitbucket.org/sib-pig/protein-digester.git"
   }
 }
