@@ -27,8 +27,8 @@
 
 Attribute      | Options     | Default      | Description
 ---            | ---         | ---          | ---
-`peptideInput` | *string*    | ``           | type of peptide input: `digest` or `upload`
-`glycanInput`  | *string*    | ``           | type of glycan input: `unicarbKBNGlycan` or `unicarbKBAll` or `upload`
+`peptideInput` | *string*    | ""           | type of peptide input: "digest" or "upload"
+`glycanInput`  | *string*    | ""           | type of glycan input: "unicarbKBNGlycan" or "unicarbKBAll" or "upload"
 `proteinSequence`| *string*  |              | data binding on protein-digester proteinSequence property
 `peptides`     | *list*      | []           | submitted list of peptides
 `glycans`      | *list*      | []           | submitted list of glycans
