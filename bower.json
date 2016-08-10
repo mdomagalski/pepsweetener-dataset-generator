@@ -28,6 +28,7 @@
     "paper-card": "PolymerElements/paper-card#^1.1.1",
     "fishtones-js": "fishtones#*",
     "peptide-parser": "https://mdomagalski@bitbucket.org/sib-pig/peptide-parser.git",
-    "protein-digester": "https://mdomagalski@bitbucket.org/sib-pig/protein-digester.git"
+    "protein-digester": "https://mdomagalski@bitbucket.org/sib-pig/protein-digester.git",
+    "peptide-modifier": "https://mdomagalski@bitbucket.org/sib-pig/peptide-modifier.git"
   }
 }
