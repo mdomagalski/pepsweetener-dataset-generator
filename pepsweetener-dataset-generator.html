@@ -496,7 +496,7 @@
                         if(!glycopeptides[bucket]){
                             glycopeptides[bucket] = [];
                         }
-                        glycopeptides[bucket].push(new Array(peptide.toString(), glycan, glycopeptideMass));
+                        glycopeptides[bucket].push(new Array(this.richSeqShortcuter.richSeqToString(peptide), glycan, glycopeptideMass));
                         this.datasetLength+=1;
                     }
                 }
