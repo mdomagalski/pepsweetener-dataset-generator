@@ -17,10 +17,8 @@
 <link rel="import" href="../paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../protein-digester/protein-digester.html">
-<link rel="import" href="../peptide-parser/peptide-parser.html">
 <link rel="import" href="../peptide-modifier/peptide-modifier.html">
 
-<script src="peptideMassCalculator.js"></script>
 <script src="glycanMassCalculator.js"></script>
 <script src="../fishtones-js/dist/fishtones-js-bundle-min.js"></script>
 
@@ -204,7 +202,6 @@
         </iron-ajax>
         <div class="mainContainerForm">
             <form is="iron-form" id="newDatasetForm">
-                <peptide-parser id="peptideParser"></peptide-parser>
                 <paper-card heading="Peptide input ({{peptides.length}})" invalid>
                     <div id="peptideInputContainer" class="card-content">
                         <paper-radio-group selected="{{peptideInput}}">
@@ -284,8 +281,7 @@
             is: 'pepsweetener-dataset-generator',
             properties: {
                 peptides: {
-                    type: Array,
-                    value: []
+                    type: Array
                 },
                 glycans: {
                     type: Array,
@@ -293,7 +289,7 @@
                 },
                 combinationLimit: {
                     type: Number,
-                    value: 10000000
+                    value: 8000000
                 },
                 proteinSequence: {
                     type: String,
@@ -338,7 +334,6 @@
                     alert('The File APIs are not fully supported in this browser.');
                 }
                 this.massBuilder = fishtones.dry.MassBuilder;
-                this.richSeqShortcuter = new  fishtones.dry.RichSequenceShortcuter();
             },
             _updateGlycanInput: function(){
                 if(this.glycanInput=="unicarbKBNGlycans"){
@@ -436,8 +431,7 @@
                         var nonRedundantPeptideList = peptideList.filter(function(item, pos) {
                             return peptideList.indexOf(item) == pos;
                         });
-                        data.$.peptideParser.peptideStrings = nonRedundantPeptideList;
-                        data.peptides = data.$.peptideParser.peptideObjects;
+                        data.peptides = nonRedundantPeptideList;
                         data._updateSites();
                         data._validatePeptides();
                     };
@@ -468,10 +462,6 @@
             generate: function() {
                 this.$.spinner.active = true;
                 this.async(function() {
-                    if(typeof this.peptides[0]=== 'string'){
-                        this.$.peptideParser.peptideStrings = this.peptides;
-                        this.peptides = this.$.peptideParser.peptideObjects;
-                    }
                     if(this._validatePeptides() && this._validateGlycans() && this._checkCombinationLimit()) {
                         this.$.peptideModifier.applyModifications();
                         this.combineGlycansAndPeptides();
@@ -497,7 +487,7 @@
                         if(!glycopeptides[bucket]){
                             glycopeptides[bucket] = [];
                         }
-                        glycopeptides[bucket].push(new Array(this.richSeqShortcuter.richSeqToString(peptide), glycan, glycopeptideMass));
+                        glycopeptides[bucket].push(new Array(peptide.toString(), glycan, glycopeptideMass));
                         this.datasetLength+=1;
                     }
                 }
